@@ -12,6 +12,7 @@ import { RangeDropdown } from "@/components/ui/range-dropdown"
 import { useApiKeys } from "@/hooks/use-api-keys"
 import { useKeysModelUsage } from "@/hooks/use-key-quota"
 import { formatCompactNumber } from "@/lib/format"
+import { keyColor } from "@/lib/key-palette"
 
 const rangeOptions = [
     { value: "1", label: "Today" },
@@ -157,6 +158,95 @@ export default function UsagePage() {
                                     series={series}
                                     metric={metric}
                                 />
+                            </CardContent>
+                        </Card>
+
+                        <Card className="py-0 shadow-none">
+                            <CardContent className="px-5 py-5">
+                                <h2 className="mb-3 text-base font-semibold">
+                                    Models by key
+                                </h2>
+                                <div className="divide-y divide-border/60">
+                                    {keyList.map((k, i) => {
+                                        const data = results[i]?.data
+                                        const models = data?.modelSummaryList
+                                            ?.slice()
+                                            .sort(
+                                                (a, b) =>
+                                                    b.totalTokens - a.totalTokens
+                                            )
+                                        const total =
+                                            data?.totalUsage.totalTokensUsage ?? 0
+                                        return (
+                                            <div
+                                                key={k.id}
+                                                className="py-3 first:pt-0 last:pb-0"
+                                            >
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="flex min-w-0 items-center gap-2">
+                                                        <span
+                                                            className="h-2.5 w-2.5 shrink-0 rounded-full"
+                                                            style={{
+                                                                background:
+                                                                    keyColor(i),
+                                                            }}
+                                                        />
+                                                        <div className="truncate text-sm font-medium">
+                                                            {k.name}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-sm font-semibold tabular-nums">
+                                                        {formatCompactNumber(
+                                                            total
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {!models || models.length === 0 ? (
+                                                    <div className="mt-1.5 pl-4.5 text-xs text-muted-foreground">
+                                                        No usage in {rangeLabel.toLowerCase()}
+                                                    </div>
+                                                ) : (
+                                                    <div className="mt-1.5 space-y-1 pl-4.5">
+                                                        {models.map((m) => {
+                                                            const share =
+                                                                total > 0
+                                                                    ? Math.round(
+                                                                          (m.totalTokens /
+                                                                              total) *
+                                                                              100
+                                                                      )
+                                                                    : 0
+                                                            return (
+                                                                <div
+                                                                    key={
+                                                                        m.modelName
+                                                                    }
+                                                                    className="flex items-center justify-between gap-3 text-xs"
+                                                                >
+                                                                    <div className="truncate text-muted-foreground">
+                                                                        {
+                                                                            m.modelName
+                                                                        }
+                                                                    </div>
+                                                                    <div className="flex shrink-0 items-center gap-2 tabular-nums">
+                                                                        <span className="text-muted-foreground">
+                                                                            {share}%
+                                                                        </span>
+                                                                        <span className="font-medium">
+                                                                            {formatCompactNumber(
+                                                                                m.totalTokens
+                                                                            )}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )
+                                    })}
+                                </div>
                             </CardContent>
                         </Card>
                     </>
