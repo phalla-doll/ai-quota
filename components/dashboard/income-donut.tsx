@@ -56,7 +56,7 @@ export function IncomeDonut({ models }: IncomeDonutProps) {
     }))
 
     return (
-        <Card className="shadow-none">
+        <Card className="shadow-none py-0">
             <CardContent className="px-5 py-5">
                 <div className="flex items-center justify-between">
                     <h2 className="text-base font-semibold">Income</h2>

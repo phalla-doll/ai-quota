@@ -25,7 +25,7 @@ export function ApiKeyList() {
 
     if (!keys || keys.length === 0) {
         return (
-            <Card className="shadow-none">
+            <Card className="shadow-none py-0">
                 <CardContent className="text-muted-foreground px-5 py-6 text-center text-sm">
                     No keys yet. Add your first one above.
                 </CardContent>
@@ -34,7 +34,7 @@ export function ApiKeyList() {
     }
 
     return (
-        <Card className="shadow-none">
+        <Card className="shadow-none py-0">
             <CardContent className="divide-border/60 divide-y px-5 py-2">
                 {keys.map((k) => (
                     <KeyRow key={k.id} apiKey={k} />

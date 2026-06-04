@@ -32,7 +32,7 @@ export function ForecastCard({
     const overBudget = projected > budgetCents
 
     return (
-        <Card className="shadow-none">
+        <Card className="shadow-none py-0">
             <CardContent className="px-4 py-4">
                 <div className="flex items-center justify-between">
                     <div>

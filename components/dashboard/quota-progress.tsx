@@ -20,7 +20,7 @@ export function QuotaProgress({ usedCents, budgetCents }: QuotaProgressProps) {
               : "text-foreground"
 
     return (
-        <Card className="shadow-none">
+        <Card className="shadow-none py-0">
             <CardContent className="space-y-3 px-4 py-4">
                 <div className="flex items-end justify-between gap-2">
                     <div>

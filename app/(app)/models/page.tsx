@@ -42,7 +42,7 @@ export default function ModelsPage() {
                     </>
                 ) : (
                     <>
-                        <Card className="shadow-none">
+                        <Card className="shadow-none py-0">
                             <CardContent className="space-y-5 px-5 py-5">
                                 <div className="space-y-1 text-center">
                                     <div className="text-muted-foreground text-sm">
@@ -76,7 +76,7 @@ export default function ModelsPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="shadow-none">
+                        <Card className="shadow-none py-0">
                             <CardContent className="divide-border/60 divide-y px-5 py-2">
                                 {sorted.map((m, i) => {
                                     const share =

@@ -17,7 +17,7 @@ export function OverallCard({
     budgetCents,
 }: OverallCardProps) {
     return (
-        <Card className="shadow-none">
+        <Card className="shadow-none py-0">
             <CardContent className="space-y-5 px-5 py-5">
                 <div className="space-y-1 text-center">
                     <div className="text-muted-foreground text-sm">

@@ -12,7 +12,7 @@ export function AlertThresholds() {
     const toggle = useAlertsStore((s) => s.toggle)
 
     return (
-        <Card className="shadow-none">
+        <Card className="shadow-none py-0">
             <CardContent className="divide-border/60 divide-y px-0 py-0">
                 {thresholds.map((t) => (
                     <div

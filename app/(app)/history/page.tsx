@@ -55,7 +55,7 @@ export default function HistoryPage() {
                     </>
                 ) : (
                     <>
-                        <Card className="shadow-none">
+                        <Card className="shadow-none py-0">
                             <CardContent className="space-y-5 px-5 py-5">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-base font-semibold">
@@ -98,7 +98,7 @@ export default function HistoryPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="shadow-none">
+                        <Card className="shadow-none py-0">
                             <CardContent className="divide-border/60 divide-y px-5 py-2">
                                 {data
                                     .slice()

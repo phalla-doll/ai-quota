@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 
 export function NoApiKeyState() {
     return (
-        <Card className="shadow-none">
+        <Card className="shadow-none py-0">
             <CardContent className="flex flex-col items-center gap-3 px-6 py-10 text-center">
                 <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-full">
                     <HugeiconsIcon icon={Key01Icon} size={24} />
