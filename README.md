@@ -1,486 +1,149 @@
-# Z AI Quota Tracker
+# Z.ai Quota Tracker
 
-## Overview
+A mobile-first dashboard that surfaces your Z.ai (GLM) usage — the same numbers you'd see at `z.ai/manage-apikey/subscription`, plus a built-in playground for testing prompts.
 
-A Telegram Mini App that displays Z AI API usage, quota consumption, token statistics, and estimated remaining credits in real time.
-
-The application acts as a lightweight dashboard accessible directly inside Telegram, allowing developers to quickly monitor their Z AI account without opening the Z AI website.
-
-The app is optimized for mobile usage and provides instant visibility into API consumption trends, spending forecasts, and quota health.
+Designed to run as a Telegram Mini App, but works fine as a plain web app too.
 
 ---
 
-## Goal
+## What it shows
 
-Provide a fast and convenient way to view:
+- **5-hour quota %** with reset countdown, plan tier (`lite`/`pro`/`max`).
+- **Search / Reader / Zread** monthly quota (Coding Plan plans).
+- **Tokens & requests** over the last 7 or 30 days (line chart + totals).
+- **Per-model breakdown** — donut + ranked list — for Today / 7d / 30d.
+- **Playground** — pick a model, send a streamed chat completion, see the per-call cost and token breakdown, watch it accumulate in the local usage log.
+- **In-app threshold alerts** at 50% / 75% / 90% / 95% if you set a monthly budget on a key.
 
-- Remaining quota
-- Current month usage
-- Daily usage
-- Token consumption
-- Estimated monthly cost
-- Usage history
-- Model-specific statistics
-
-Inside Telegram.
+Numbers shown on the Dashboard / Usage / Models tabs come from Z.ai's own monitor endpoints (the ones that power their dashboard). Playground-recorded usage is a separate local log for pay-as-you-go tracking with a budget.
 
 ---
 
-## Target Users
+## Architecture
 
-### Individual Developers
-
-Monitor personal API usage.
-
-### Teams
-
-Track shared API key consumption.
-
-### AI Power Users
-
-Keep track of multiple Z AI models and projects.
-
----
-
-## Core Features
-
-### Dashboard
-
-Display summary information.
-
-#### Metrics
-
-```txt
-Remaining Credits
-Used Credits
-Monthly Limit
-Daily Usage
-Total Requests
-Total Tokens
-```
-
-#### Example
-
-```txt
-Remaining:
-$42.13
-
-Used:
-$7.87
-
-Monthly Budget:
-$50.00
-
-Requests:
-18,429
-
-Tokens:
-34.8M
-```
-
----
-
-### Usage Progress
-
-Visual quota consumption.
-
-```txt
-████████░░░░░░░░░░
-
-32%
-Used
-```
-
----
-
-### Daily Usage Chart
-
-Track usage trends.
-
-```txt
-Today
-Yesterday
-Last 7 Days
-Last 30 Days
-```
-
----
-
-### Model Usage
-
-Breakdown by model.
-
-#### Example
-
-```txt
-glm-5.1
-12.4M Tokens
-
-glm-4.5
-8.1M Tokens
-
-glm-coding
-3.2M Tokens
-```
-
----
-
-### Request Analytics
-
-Display:
-
-```txt
-Successful Requests
-Failed Requests
-Average Response Time
-Peak Usage Hour
-```
-
----
-
-### Spending Forecast
-
-Estimate end-of-month cost.
-
-#### Example
-
-```txt
-Current Spend:
-$7.87
-
-Projected:
-$23.10
-
-Budget:
-$50.00
-```
-
----
-
-### Telegram Notifications
-
-Send alerts when:
-
-```txt
-50% Used
-75% Used
-90% Used
-95% Used
-```
-
-Example:
-
-```txt
-⚠️ Z AI Usage Alert
-
-You have consumed 90% of your monthly quota.
-
-Remaining:
-$4.81
-```
-
----
-
-### Multi API Key Support
-
-Manage multiple environments.
-
-#### Example
-
-```txt
-Personal
-Production
-Development
-Testing
-```
-
-Switch between them instantly.
-
----
-
-### Historical Reports
-
-View usage history.
-
-#### Time Ranges
-
-```txt
-Today
-7 Days
-30 Days
-90 Days
-1 Year
-```
-
----
-
-### Export Reports
-
-Formats:
-
-```txt
-CSV
-JSON
-Excel
-```
-
----
-
-## Telegram Mini App Experience
-
-### Home Screen
-
-```txt
-┌──────────────────┐
-│ Z AI Tracker     │
-├──────────────────┤
-│ Remaining $42.13 │
-│ Used      $7.87  │
-│ Progress  32%    │
-├──────────────────┤
-│ Usage Chart      │
-├──────────────────┤
-│ Models           │
-├──────────────────┤
-│ Forecast         │
-└──────────────────┘
-```
-
----
-
-### Navigation
-
-```txt
-Dashboard
-Usage
-Models
-History
-Settings
-```
-
-Bottom-tab layout.
-
----
-
-## Technical Stack
+Single Next.js app, no separate backend.
 
 ### Frontend
 
-```txt
-Next.js 15
-React 19
-TypeScript
-Tailwind CSS
-shadcn/ui
-Telegram Mini Apps SDK
-TanStack Query
-Zustand
+| Layer | Pick |
+| --- | --- |
+| Framework | Next.js 16 (App Router) + React 19 |
+| Styling | Tailwind v4 + shadcn/ui (radix-luma) |
+| Drawer / sheet | vaul (`Drawer` everywhere — preferred over `Dialog` for this mobile-first app) |
+| Server cache | TanStack Query |
+| Client state | Zustand (`ui-store`, `alerts-store`) |
+| Charts | Recharts |
+| Icons | `@hugeicons/react` |
+| Telegram | `@telegram-apps/sdk-react` (auto-detects, falls back to dev mock) |
+
+### Server-side surface
+
+One Route Handler: `app/api/zai/[...path]/route.ts`. It's a pass-through proxy to Z.ai used to dodge browser CORS. Reads `Authorization` and `x-zai-endpoint` from the incoming request, forwards to one of:
+
+- `https://api.z.ai/api/paas/v4` — standard inference
+- `https://api.z.ai/api/coding/paas/v4` — Coding Plan inference
+- `https://api.z.ai/api` — monitor endpoints (`/monitor/usage/quota/limit`, `/monitor/usage/model-usage?startTime=…&endTime=…`)
+
+The proxy is stateless. It never reads or stores the key body — only forwards the header.
+
+### Data persistence
+
+Entirely in `localStorage`. There is no database, no auth, no Worker, no D1.
+
+| Key | Holds |
+| --- | --- |
+| `zai-tracker-keys` | Array of API keys (`{ id, name, endpoint, key, monthlyBudgetCents, … }`) |
+| `zai:events:{keyId}` | Append-only Playground call log per key (token counts, cost in cents) |
+| `zai-tracker-ui` | Selected key id, usage-invalidation counter |
+| `zai-tracker-alerts` | Per-key `{enabled, lastFiredPeriod}` thresholds |
+
+Plain plaintext. Fine for personal use on a device you control; **not** suitable as a shared hosted service.
+
+---
+
+## How usage numbers are sourced
+
+Z.ai exposes no public "usage / balance" API. The published reference (`docs.z.ai`) covers only inference endpoints. The data on `z.ai/manage-apikey/subscription` is served by **undocumented monitor endpoints under `api.z.ai/api/monitor/…`** that, conveniently, accept the same Bearer API key.
+
+This project uses:
+
+- `GET /api/monitor/usage/quota/limit` → 5-hour token quota %, plan tier, reset time, search/reader/zread quota
+- `GET /api/monitor/usage/model-usage?startTime=YYYY-MM-DD HH:MM:SS&endTime=…` → per-day token & call counts, `modelSummaryList`, `modelDataList`
+
+Because these aren't in the public reference, they can change without warning. If the cards ever surface a 4xx/5xx error, that's the first thing to check.
+
+---
+
+## Routes
+
+```
+/                Dashboard  — Quota + model breakdown (+ budget cards if budget set)
+/usage           Usage      — Daily tokens / requests, totals, range picker
+/playground      Playground — Pick model, send prompt, see streamed reply + cost
+/models          Models     — Total tokens, per-model ranked list
+/settings        Settings   — Manage keys, alert thresholds, dark mode
+```
+
+Bottom-tab nav, 5 tabs.
+
+---
+
+## Local setup
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Open `http://localhost:3000`.
+
+1. **Settings → Add API key** → paste your Z.ai key, pick `Standard API` or `Coding Plan`, optionally set a monthly budget. The drawer validates against `/models` before saving.
+2. **Dashboard** populates immediately — your real plan tier and quota, fetched on a 60s refresh.
+3. **Playground** — pick a model, send a prompt. Cost gets computed from the local pricing table and appended to the per-key event log.
+
+You can paste multiple keys; the top-right pill on each screen switches between them.
+
+---
+
+## Scripts
+
+```bash
+pnpm dev         # next dev (Turbopack)
+pnpm build       # production build
+pnpm start       # serve the build
+pnpm typecheck   # tsc --noEmit
+pnpm lint        # eslint
+pnpm format      # prettier --write
 ```
 
 ---
 
-### Backend
+## Telegram Mini App
 
-```txt
-Cloudflare Workers
-```
+The app initialises the Telegram SDK on mount (`components/providers/telegram-provider.tsx`) and falls back to a dev user when not running inside Telegram. To wire it up as an actual Mini App:
 
-Responsibilities:
+1. Create a bot via `@BotFather`.
+2. `/newapp` → point at your deployed URL.
+3. Open it from inside Telegram — the SDK picks up `initData` automatically.
 
-```txt
-Store API Keys
-Aggregate Usage
-Cache Statistics
-Serve Dashboard Data
-```
+There is no server-side `initData` HMAC validation, because there is no server beyond the proxy. If you ever add auth, that's where it'd go.
 
 ---
 
-### Database
+## Known limits
 
-```txt
-Cloudflare D1
-Drizzle ORM
-```
-
----
-
-### Storage
-
-```txt
-Cloudflare KV
-```
-
-Used for:
-
-```txt
-Cached Usage Data
-Settings
-Notification Preferences
-```
+- The monitor endpoints aren't officially documented. Field names could move under your feet.
+- Pay-as-you-go (non-Coding Plan) keys may not return useful monitor data. Set a budget on the key to fall back to Playground-tracked $ instead.
+- Playground cost is computed from a hand-maintained price table in `lib/zai-pricing.ts`. Treat as approximate.
+- Keys live in plaintext localStorage. Don't expose this app publicly without auth.
+- Telegram bot alerts (50/75/90/95) fire as in-app toasts only; there is no backend to push a message into Telegram on your behalf.
 
 ---
 
-## Database Schema
+## Stack
 
-### users
-
-```sql
-id
-telegram_id
-name
-created_at
 ```
-
----
-
-### api_keys
-
-```sql
-id
-user_id
-name
-encrypted_key
-created_at
+Next.js 16 · React 19 · TypeScript 5 · Tailwind v4
+shadcn/ui · vaul · Recharts · @hugeicons/react
+TanStack Query · Zustand · @telegram-apps/sdk-react
 ```
-
----
-
-### usage_snapshots
-
-```sql
-id
-api_key_id
-requests
-tokens
-cost
-captured_at
-```
-
----
-
-### alerts
-
-```sql
-id
-user_id
-threshold
-enabled
-```
-
----
-
-## API Layer
-
-### Z AI Client
-
-Base URL:
-
-```txt
-https://api.z.ai/api/paas/v4
-```
-
-Authentication:
-
-```txt
-Authorization: Bearer API_KEY
-```
-
-Worker fetches usage statistics periodically and stores snapshots.
-
----
-
-## Security
-
-### API Key Storage
-
-Requirements:
-
-```txt
-Encrypted At Rest
-Never Exposed To Frontend
-Server Side Access Only
-```
-
-#### Recommended
-
-```txt
-Cloudflare Secrets
-AES Encryption
-Worker Environment Variables
-```
-
----
-
-## Background Jobs
-
-Run every:
-
-```txt
-5 Minutes
-15 Minutes
-1 Hour
-```
-
-Tasks:
-
-```txt
-Fetch Usage
-Update Statistics
-Generate Forecasts
-Check Alerts
-```
-
----
-
-## Future Features
-
-### Widget Mode
-
-Pinned Telegram dashboard.
-
----
-
-### AI Insights
-
-Generate:
-
-```txt
-Usage Patterns
-Cost Optimization
-Model Recommendations
-```
-
----
-
-### Multi Provider Support
-
-Future expansion:
-
-```txt
-Z AI
-OpenAI
-Anthropic
-Google Gemini
-NVIDIA
-OpenRouter
-```
-
-Single dashboard for all AI providers.
-
----
-
-## MVP Scope
-
-Version 1 should include:
-
-- Telegram Login
-- API Key Management
-- Usage Dashboard
-- Quota Tracking
-- Daily Usage Chart
-- Model Breakdown
-- Notifications
-- Historical Reports
-
-The MVP should be built as a Telegram Mini App using Next.js, Telegram Mini Apps SDK, Cloudflare Workers, D1, and Cloudflare KV. The architecture should be provider-agnostic so that support for OpenAI, Anthropic, NVIDIA, and other AI platforms can be added later without major refactoring.
