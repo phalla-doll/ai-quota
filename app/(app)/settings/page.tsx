@@ -22,7 +22,7 @@ export default function SettingsPage() {
             <div className="space-y-5 px-4 pt-3">
                 <SettingsSection
                     title="API keys"
-                    description="Stored encrypted. Used to read Z AI usage."
+                    description="Stored in this browser only. Validated against Z.ai on save. Coding Plan keys also unlock real quota numbers on the dashboard."
                 >
                     <div className="space-y-3">
                         <AddKeyDrawer />
@@ -31,8 +31,8 @@ export default function SettingsPage() {
                 </SettingsSection>
 
                 <SettingsSection
-                    title="Notifications"
-                    description="Telegram alerts when monthly usage crosses each threshold."
+                    title="Alerts"
+                    description="In-app warnings when monthly usage crosses each threshold."
                 >
                     <AlertThresholds />
                 </SettingsSection>

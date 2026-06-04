@@ -2,22 +2,21 @@
 
 import { AppHeader } from "@/components/layout/app-header"
 import { OverallCard } from "@/components/dashboard/overall-card"
-import { IncomeDonut } from "@/components/dashboard/income-donut"
 import { ForecastCard } from "@/components/dashboard/forecast-card"
+import { QuotaCard } from "@/components/dashboard/quota-card"
+import { ModelBreakdownCard } from "@/components/dashboard/model-breakdown-card"
 import { NoApiKeyState } from "@/components/dashboard/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiKeys, useSelectedApiKey } from "@/hooks/use-api-keys"
-import { useModelUsage, useUsageSummary } from "@/hooks/use-usage"
+import { useUsageSummary } from "@/hooks/use-usage"
 
 export default function DashboardPage() {
     const { data: keys, isLoading: keysLoading } = useApiKeys()
     const selected = useSelectedApiKey()
-    const { data: summary, isLoading } = useUsageSummary(selected?.id)
-    const { data: models, isLoading: modelsLoading } = useModelUsage(
-        selected?.id
-    )
+    const { data: summary } = useUsageSummary(selected?.id)
 
     const hasKeys = (keys?.length ?? 0) > 0
+    const hasBudget = (summary?.monthlyBudgetCents ?? 0) > 0
     const remainingCents = summary
         ? Math.max(summary.monthlyBudgetCents - summary.usedCents, 0)
         : 0
@@ -36,27 +35,23 @@ export default function DashboardPage() {
                         <Skeleton className="h-56 w-full rounded-xl" />
                         <Skeleton className="h-72 w-full rounded-xl" />
                     </>
-                ) : !hasKeys ? (
+                ) : !hasKeys || !selected ? (
                     <NoApiKeyState />
                 ) : (
                     <>
-                        {isLoading || !summary ? (
-                            <Skeleton className="h-56 w-full rounded-xl" />
-                        ) : (
+                        <QuotaCard apiKey={selected} />
+
+                        <ModelBreakdownCard apiKey={selected} />
+
+                        {hasBudget && summary ? (
                             <OverallCard
                                 remainingCents={remainingCents}
                                 usedCents={summary.usedCents}
                                 budgetCents={summary.monthlyBudgetCents}
                             />
-                        )}
+                        ) : null}
 
-                        {modelsLoading || !models ? (
-                            <Skeleton className="h-80 w-full rounded-xl" />
-                        ) : (
-                            <IncomeDonut models={models} />
-                        )}
-
-                        {summary ? (
+                        {hasBudget && summary ? (
                             <ForecastCard
                                 usedCents={summary.usedCents}
                                 budgetCents={summary.monthlyBudgetCents}

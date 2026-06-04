@@ -7,21 +7,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { RangeDropdown } from "@/components/ui/range-dropdown"
 import { useSelectedApiKey } from "@/hooks/use-api-keys"
-import { useDailyUsage } from "@/hooks/use-usage"
-import {
-    formatCompactNumber,
-    formatCurrency,
-    formatTokens,
-} from "@/lib/format"
+import { useKeyModelUsage } from "@/hooks/use-key-quota"
+import { formatCompactNumber } from "@/lib/format"
+import type { DailyUsagePoint } from "@/lib/types"
 
 const rangeOptions = [
-    { value: "1", label: "Today" },
     { value: "7", label: "Last 7 days" },
     { value: "30", label: "Last 30 days" },
 ] as const
 
 const metricOptions = [
-    { value: "cost", label: "Cost" },
     { value: "tokens", label: "Tokens" },
     { value: "requests", label: "Requests" },
 ] as const
@@ -31,42 +26,56 @@ type Metric = (typeof metricOptions)[number]["value"]
 
 export default function UsagePage() {
     const [range, setRange] = React.useState<Range>("7")
-    const [metric, setMetric] = React.useState<Metric>("cost")
+    const [metric, setMetric] = React.useState<Metric>("tokens")
     const selected = useSelectedApiKey()
-    const { data, isLoading } = useDailyUsage(selected?.id, Number(range))
+    const { data, isLoading, error } = useKeyModelUsage(selected, Number(range))
+
+    const series: DailyUsagePoint[] = React.useMemo(() => {
+        if (!data) return []
+        return data.x_time.map((date, i) => ({
+            date,
+            tokens: data.tokensUsage[i] ?? 0,
+            requests: data.modelCallCount[i] ?? 0,
+            costCents: 0,
+        }))
+    }, [data])
 
     const totals = React.useMemo(() => {
         if (!data) return null
-        return data.reduce(
-            (acc, d) => ({
-                cost: acc.cost + d.costCents,
-                tokens: acc.tokens + d.tokens,
-                requests: acc.requests + d.requests,
-            }),
-            { cost: 0, tokens: 0, requests: 0 }
-        )
+        return {
+            tokens: data.totalUsage.totalTokensUsage,
+            requests: data.totalUsage.totalModelCallCount,
+        }
     }, [data])
 
     const rangeLabel =
         rangeOptions.find((r) => r.value === range)?.label ?? ""
+    const metricLabel = metric === "tokens" ? "Tokens" : "Requests"
 
     return (
         <>
             <AppHeader title="Usage" subtitle={selected?.name} />
 
             <div className="space-y-4 px-4 pt-3">
-                {isLoading || !data || !totals ? (
+                {isLoading ? (
                     <>
                         <Skeleton className="h-56 w-full rounded-xl" />
                         <Skeleton className="h-72 w-full rounded-xl" />
                     </>
+                ) : error || !data || !totals ? (
+                    <Card className="shadow-none py-0">
+                        <CardContent className="text-muted-foreground px-5 py-6 text-center text-sm">
+                            Couldn’t load usage. The selected key may not be
+                            on a Coding Plan.
+                        </CardContent>
+                    </Card>
                 ) : (
                     <>
                         <Card className="shadow-none py-0">
                             <CardContent className="space-y-5 px-5 py-5">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-base font-semibold">
-                                        Total spend
+                                        Total {metricLabel.toLowerCase()}
                                     </h2>
                                     <RangeDropdown
                                         value={range}
@@ -76,7 +85,11 @@ export default function UsagePage() {
                                 </div>
                                 <div className="space-y-1 text-center">
                                     <div className="text-4xl font-bold tracking-tight tabular-nums">
-                                        {formatCurrency(totals.cost)}
+                                        {formatCompactNumber(
+                                            metric === "tokens"
+                                                ? totals.tokens
+                                                : totals.requests
+                                        )}
                                     </div>
                                     <div className="text-muted-foreground text-sm">
                                         {rangeLabel}
@@ -88,7 +101,7 @@ export default function UsagePage() {
                                             Tokens
                                         </div>
                                         <div className="mt-0.5 font-semibold tabular-nums">
-                                            {formatTokens(totals.tokens)}
+                                            {formatCompactNumber(totals.tokens)}
                                         </div>
                                     </div>
                                     <div className="px-4 py-3 text-center">
@@ -117,7 +130,10 @@ export default function UsagePage() {
                                         onChange={setMetric}
                                     />
                                 </div>
-                                <DailyUsageChart data={data} metric={metric} />
+                                <DailyUsageChart
+                                    data={series}
+                                    metric={metric}
+                                />
                             </CardContent>
                         </Card>
                     </>

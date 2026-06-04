@@ -1,0 +1,120 @@
+"use client"
+
+import { formatDistanceToNowStrict } from "date-fns"
+import { Card, CardContent } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { Skeleton } from "@/components/ui/skeleton"
+import { formatCompactNumber } from "@/lib/format"
+import { useKeyQuota, useKeyModelUsage } from "@/hooks/use-key-quota"
+import type { QuotaLimit } from "@/lib/zai-monitor"
+import type { ApiKey } from "@/lib/types"
+
+function labelFor(limit: QuotaLimit): string {
+    if (limit.type === "TOKENS_LIMIT") return "5-hour quota"
+    if (limit.type === "TIME_LIMIT") return "Search / Reader / Zread"
+    return limit.type
+}
+
+export function QuotaCard({ apiKey }: { apiKey: ApiKey }) {
+    const quota = useKeyQuota(apiKey)
+    const month = useKeyModelUsage(apiKey, 30)
+
+    if (quota.isLoading) {
+        return <Skeleton className="h-56 w-full rounded-xl" />
+    }
+
+    if (quota.error) {
+        return (
+            <Card className="shadow-none py-0">
+                <CardContent className="space-y-2 px-5 py-5 text-sm">
+                    <div className="text-destructive font-medium">
+                        Couldn’t read quota
+                    </div>
+                    <p className="text-muted-foreground text-xs">
+                        {quota.error instanceof Error
+                            ? quota.error.message
+                            : "unknown"}
+                        . The monitor endpoint expects a Coding Plan key. If
+                        this is a pay-as-you-go key, there’s no live quota to
+                        show.
+                    </p>
+                </CardContent>
+            </Card>
+        )
+    }
+
+    if (!quota.data) return null
+
+    const primary =
+        quota.data.limits.find((l) => l.type === "TOKENS_LIMIT") ??
+        quota.data.limits[0]
+    const others = quota.data.limits.filter((l) => l !== primary)
+    const totalTokens30d = month.data?.totalUsage?.totalTokensUsage ?? 0
+    const totalCalls30d = month.data?.totalUsage?.totalModelCallCount ?? 0
+
+    return (
+        <Card className="shadow-none py-0">
+            <CardContent className="space-y-5 px-5 py-5">
+                <div className="space-y-1 text-center">
+                    <div className="text-muted-foreground text-sm">
+                        {labelFor(primary)}
+                    </div>
+                    <div className="text-4xl font-bold tracking-tight tabular-nums">
+                        {primary.percentage}%
+                    </div>
+                    <div className="text-muted-foreground text-xs">
+                        Plan{" "}
+                        <span className="font-medium uppercase">
+                            {quota.data.level}
+                        </span>
+                        {primary.nextResetTime
+                            ? ` · Resets in ${formatDistanceToNowStrict(
+                                  new Date(primary.nextResetTime)
+                              )}`
+                            : ""}
+                        {quota.isFetching ? " · syncing…" : ""}
+                    </div>
+                </div>
+
+                <Progress value={primary.percentage} />
+
+                {others.length > 0 && (
+                    <div className="space-y-3 pt-1">
+                        {others.map((l) => (
+                            <div key={l.type} className="space-y-1">
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="text-muted-foreground">
+                                        {labelFor(l)}
+                                    </span>
+                                    <span className="font-medium tabular-nums">
+                                        {l.percentage}%
+                                    </span>
+                                </div>
+                                <Progress value={l.percentage} />
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <div className="bg-muted/40 grid grid-cols-2 divide-x rounded-xl">
+                    <div className="px-4 py-3 text-center">
+                        <div className="text-muted-foreground text-xs">
+                            Tokens · 30d
+                        </div>
+                        <div className="mt-0.5 font-semibold tabular-nums">
+                            {formatCompactNumber(totalTokens30d)}
+                        </div>
+                    </div>
+                    <div className="px-4 py-3 text-center">
+                        <div className="text-muted-foreground text-xs">
+                            Requests · 30d
+                        </div>
+                        <div className="mt-0.5 font-semibold tabular-nums">
+                            {formatCompactNumber(totalCalls30d)}
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
