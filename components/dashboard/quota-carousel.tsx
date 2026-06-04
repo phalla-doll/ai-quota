@@ -4,6 +4,7 @@ import * as React from "react"
 import useEmblaCarousel from "embla-carousel-react"
 import { QuotaCard } from "@/components/dashboard/quota-card"
 import { useUiStore } from "@/lib/stores/ui-store"
+import { keyPalette } from "@/lib/key-palette"
 import { cn } from "@/lib/utils"
 import type { ApiKey } from "@/lib/types"
 
@@ -49,7 +50,7 @@ export function QuotaCarousel({ keys }: { keys: ApiKey[] }) {
     }, [emblaApi, keys, selectedId])
 
     if (keys.length === 1) {
-        return <QuotaCard apiKey={keys[0]} />
+        return <QuotaCard apiKey={keys[0]} color={keyPalette[0]} />
     }
 
     return (
@@ -59,12 +60,15 @@ export function QuotaCarousel({ keys }: { keys: ApiKey[] }) {
                 ref={emblaRef}
             >
                 <div className="flex">
-                    {keys.map((k) => (
+                    {keys.map((k, i) => (
                         <div
                             key={k.id}
                             className="min-w-0 shrink-0 grow-0 basis-[92%] pr-3"
                         >
-                            <QuotaCard apiKey={k} />
+                            <QuotaCard
+                                apiKey={k}
+                                color={keyPalette[i % keyPalette.length]}
+                            />
                         </div>
                     ))}
                 </div>

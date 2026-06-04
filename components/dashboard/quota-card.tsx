@@ -15,14 +15,31 @@ function labelFor(limit: QuotaLimit): string {
     return limit.type
 }
 
-export function QuotaCard({ apiKey }: { apiKey: ApiKey }) {
+export function QuotaCard({
+    apiKey,
+    color,
+}: {
+    apiKey: ApiKey
+    color?: string
+}) {
     const quota = useKeyQuota(apiKey)
     const month = useKeyModelUsage(apiKey, 30)
+
+    const keyLabel = (
+        <div className="flex items-center gap-2">
+            <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: color ?? "var(--muted-foreground)" }}
+            />
+            <span className="truncate text-sm font-medium">{apiKey.name}</span>
+        </div>
+    )
 
     if (quota.isLoading) {
         return (
             <Card className="py-0 shadow-none">
                 <CardContent className="space-y-5 px-5 py-5">
+                    {keyLabel}
                     <div className="space-y-1 text-center">
                         <div className="text-sm text-muted-foreground">
                             Quota remaining
@@ -64,6 +81,7 @@ export function QuotaCard({ apiKey }: { apiKey: ApiKey }) {
         return (
             <Card className="py-0 shadow-none">
                 <CardContent className="space-y-2 px-5 py-5 text-sm">
+                    {keyLabel}
                     <div className="font-medium text-destructive">
                         Couldn’t read quota
                     </div>
@@ -92,6 +110,7 @@ export function QuotaCard({ apiKey }: { apiKey: ApiKey }) {
     return (
         <Card className="py-0 shadow-none">
             <CardContent className="space-y-5 px-5 py-5">
+                {keyLabel}
                 <div className="space-y-1 text-center">
                     <div className="text-sm text-muted-foreground">
                         {labelFor(primary)} remaining
