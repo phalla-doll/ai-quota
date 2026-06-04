@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
     useApiKeys,
     useDeleteApiKey,
@@ -41,7 +42,28 @@ import { formatCurrency } from "@/lib/format"
 import type { ApiKey } from "@/lib/types"
 
 export function ApiKeyList() {
-    const { data: keys } = useApiKeys()
+    const { data: keys, isLoading } = useApiKeys()
+
+    if (isLoading) {
+        return (
+            <Card className="py-0 shadow-none">
+                <CardContent className="divide-y divide-border/60 px-5 py-2">
+                    {Array.from({ length: 2 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-3 py-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                <HugeiconsIcon icon={Key01Icon} size={18} />
+                            </div>
+                            <div className="min-w-0 flex-1 space-y-1.5">
+                                <Skeleton className="h-3.5 w-32 rounded-md" />
+                                <Skeleton className="h-3 w-40 rounded-md" />
+                            </div>
+                            <Skeleton className="h-8 w-8 rounded-full" />
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+        )
+    }
 
     if (!keys || keys.length === 0) {
         return (
