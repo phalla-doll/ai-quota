@@ -107,7 +107,7 @@ export default function PlaygroundPage() {
         <>
             <AppHeader
                 title="Playground"
-                subtitle={selected?.name ?? "No key selected"}
+                subtitle="Send a prompt to a key"
                 showKeySwitcher={hasKeys}
             />
 
@@ -185,38 +185,42 @@ export default function PlaygroundPage() {
                             </CardContent>
                         </Card>
 
-                        {(streaming || send.isPending) && (
+                        {(streaming || send.isPending || lastResult) && (
                             <Card className="py-0 shadow-none">
-                                <CardContent className="space-y-2 px-5 py-5">
+                                <CardContent className="space-y-3 px-5 py-5">
                                     <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                         Response
                                     </div>
                                     <pre className="font-sans text-sm leading-relaxed whitespace-pre-wrap">
-                                        {streaming || "…"}
+                                        {streaming ||
+                                            (send.isPending ? "…" : "")}
                                     </pre>
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {lastResult && (
-                            <Card className="py-0 shadow-none">
-                                <CardContent className="space-y-2 px-5 py-5 text-sm">
-                                    <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                                        Last call
-                                    </div>
-                                    <Row k="Model" v={lastResult.model} />
-                                    <Row
-                                        k="Prompt tokens"
-                                        v={formatNumber(lastResult.tokensIn)}
-                                    />
-                                    <Row
-                                        k="Completion tokens"
-                                        v={formatNumber(lastResult.tokensOut)}
-                                    />
-                                    <Row
-                                        k="Cost"
-                                        v={formatCurrency(lastResult.costCents)}
-                                    />
+                                    {lastResult && (
+                                        <div className="space-y-2 border-t pt-3 text-sm">
+                                            <Row
+                                                k="Model"
+                                                v={lastResult.model}
+                                            />
+                                            <Row
+                                                k="Prompt tokens"
+                                                v={formatNumber(
+                                                    lastResult.tokensIn
+                                                )}
+                                            />
+                                            <Row
+                                                k="Completion tokens"
+                                                v={formatNumber(
+                                                    lastResult.tokensOut
+                                                )}
+                                            />
+                                            <Row
+                                                k="Cost (est.)"
+                                                v={formatCurrency(
+                                                    lastResult.costCents
+                                                )}
+                                            />
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         )}
