@@ -23,12 +23,14 @@ type AppHeaderProps = {
     title: string
     subtitle?: string
     showKeySwitcher?: boolean
+    rightAction?: "switcher" | "add"
 }
 
 export function AppHeader({
     title,
     subtitle,
     showKeySwitcher = true,
+    rightAction = "switcher",
 }: AppHeaderProps) {
     const { data: keys } = useApiKeys()
     const selected = useSelectedApiKey()
@@ -36,7 +38,12 @@ export function AppHeader({
     const [open, setOpen] = React.useState(false)
     const [addOpen, setAddOpen] = React.useState(false)
 
-    const showSwitcher = showKeySwitcher && keys && keys.length > 0
+    const showSwitcher =
+        rightAction === "switcher" &&
+        showKeySwitcher &&
+        keys &&
+        keys.length > 0
+    const showAdd = rightAction === "add"
 
     return (
         <div
@@ -130,6 +137,17 @@ export function AppHeader({
                         </DrawerFooter>
                     </DrawerContent>
                 </Drawer>
+            ) : null}
+            {showAdd ? (
+                <Button
+                    variant="secondary"
+                    size="icon"
+                    className="mt-1 shrink-0 rounded-full"
+                    aria-label="Add API key"
+                    onClick={() => setAddOpen(true)}
+                >
+                    <HugeiconsIcon icon={PlusSignIcon} size={16} />
+                </Button>
             ) : null}
             <AddKeyDrawer
                 open={addOpen}
