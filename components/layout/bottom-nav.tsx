@@ -7,7 +7,7 @@ import {
     DashboardSquare01Icon,
     ChartLineData01Icon,
     // AiBrain01Icon,
-    ChatBotIcon,
+    TestTube01Icon,
     Settings01Icon,
 } from "@hugeicons/core-free-icons"
 import { cn } from "@/lib/utils"
@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils"
 const items = [
     { href: "/", label: "Overview", icon: DashboardSquare01Icon },
     { href: "/usage", label: "Usage", icon: ChartLineData01Icon },
-    { href: "/playground", label: "Playground", icon: ChatBotIcon },
+    { href: "/playground", label: "Playground", icon: TestTube01Icon },
     // { href: "/models", label: "Models", icon: AiBrain01Icon },
     { href: "/settings", label: "Settings", icon: Settings01Icon },
 ] as const
