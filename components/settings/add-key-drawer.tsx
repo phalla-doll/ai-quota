@@ -105,7 +105,7 @@ export function AddKeyDrawer({
                             <Label htmlFor="key-name">Name</Label>
                             <Input
                                 id="key-name"
-                                placeholder="Production"
+                                placeholder="Opencode"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 autoComplete="off"

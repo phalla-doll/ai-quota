@@ -216,9 +216,7 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                             <Input
                                 id={`rename-${apiKey.id}`}
                                 value={renameValue}
-                                onChange={(e) =>
-                                    setRenameValue(e.target.value)
-                                }
+                                onChange={(e) => setRenameValue(e.target.value)}
                                 autoComplete="off"
                                 autoFocus
                                 className="h-12 px-4 text-base md:text-base"
