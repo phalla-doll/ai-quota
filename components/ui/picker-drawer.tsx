@@ -28,6 +28,9 @@ type PickerDrawerProps = {
     placeholder?: string
     disabled?: boolean
     triggerId?: string
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
+    hideTrigger?: boolean
 }
 
 export function PickerDrawer({
@@ -39,38 +42,45 @@ export function PickerDrawer({
     placeholder = "Select…",
     disabled,
     triggerId,
+    open: controlledOpen,
+    onOpenChange,
+    hideTrigger,
 }: PickerDrawerProps) {
-    const [open, setOpen] = React.useState(false)
+    const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
+    const open = controlledOpen ?? uncontrolledOpen
+    const setOpen = onOpenChange ?? setUncontrolledOpen
     const current = options.find((o) => o.value === value)
 
     return (
         <Drawer open={open} onOpenChange={setOpen}>
-            <DrawerTrigger asChild>
-                <button
-                    id={triggerId}
-                    type="button"
-                    disabled={disabled}
-                    className={cn(
-                        "flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-left text-sm",
-                        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                        "disabled:cursor-not-allowed disabled:opacity-50"
-                    )}
-                >
-                    <span
+            {hideTrigger ? null : (
+                <DrawerTrigger asChild>
+                    <button
+                        id={triggerId}
+                        type="button"
+                        disabled={disabled}
                         className={cn(
-                            "truncate",
-                            !current && "text-muted-foreground"
+                            "flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-left text-sm",
+                            "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                            "disabled:cursor-not-allowed disabled:opacity-50"
                         )}
                     >
-                        {current?.label ?? placeholder}
-                    </span>
-                    <HugeiconsIcon
-                        icon={ChevronDownIcon}
-                        size={16}
-                        className="shrink-0 text-muted-foreground"
-                    />
-                </button>
-            </DrawerTrigger>
+                        <span
+                            className={cn(
+                                "truncate",
+                                !current && "text-muted-foreground"
+                            )}
+                        >
+                            {current?.label ?? placeholder}
+                        </span>
+                        <HugeiconsIcon
+                            icon={ChevronDownIcon}
+                            size={16}
+                            className="shrink-0 text-muted-foreground"
+                        />
+                    </button>
+                </DrawerTrigger>
+            )}
             <DrawerContent>
                 <DrawerHeader>
                     <DrawerTitle>{title}</DrawerTitle>
