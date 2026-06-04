@@ -80,12 +80,7 @@ export default function UsagePage() {
             />
 
             <div className="space-y-4 px-4 pt-3">
-                {isLoading ? (
-                    <>
-                        <Skeleton className="h-56 w-full rounded-xl" />
-                        <Skeleton className="h-72 w-full rounded-xl" />
-                    </>
-                ) : keyList.length === 0 || allErrored ? (
+                {keyList.length === 0 || (!isLoading && allErrored) ? (
                     <Card className="py-0 shadow-none">
                         <CardContent className="px-5 py-6 text-center text-sm text-muted-foreground">
                             {keyList.length === 0
@@ -108,13 +103,19 @@ export default function UsagePage() {
                                     />
                                 </div>
                                 <div className="space-y-1 text-center">
-                                    <div className="text-4xl font-bold tracking-tight tabular-nums">
-                                        {formatCompactNumber(
-                                            metric === "tokens"
-                                                ? totals.tokens
-                                                : totals.requests
-                                        )}
-                                    </div>
+                                    {isLoading ? (
+                                        <div className="flex justify-center">
+                                            <Skeleton className="h-10 w-28 rounded-md" />
+                                        </div>
+                                    ) : (
+                                        <div className="text-4xl font-bold tracking-tight tabular-nums">
+                                            {formatCompactNumber(
+                                                metric === "tokens"
+                                                    ? totals.tokens
+                                                    : totals.requests
+                                            )}
+                                        </div>
+                                    )}
                                     <div className="text-sm text-muted-foreground">
                                         {rangeLabel}
                                     </div>
@@ -124,19 +125,33 @@ export default function UsagePage() {
                                         <div className="text-xs text-muted-foreground">
                                             Tokens
                                         </div>
-                                        <div className="mt-0.5 font-semibold tabular-nums">
-                                            {formatCompactNumber(totals.tokens)}
-                                        </div>
+                                        {isLoading ? (
+                                            <div className="mt-1 flex justify-center">
+                                                <Skeleton className="h-4 w-12 rounded-md" />
+                                            </div>
+                                        ) : (
+                                            <div className="mt-0.5 font-semibold tabular-nums">
+                                                {formatCompactNumber(
+                                                    totals.tokens
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="px-4 py-3 text-center">
                                         <div className="text-xs text-muted-foreground">
                                             Requests
                                         </div>
-                                        <div className="mt-0.5 font-semibold tabular-nums">
-                                            {formatCompactNumber(
-                                                totals.requests
-                                            )}
-                                        </div>
+                                        {isLoading ? (
+                                            <div className="mt-1 flex justify-center">
+                                                <Skeleton className="h-4 w-12 rounded-md" />
+                                            </div>
+                                        ) : (
+                                            <div className="mt-0.5 font-semibold tabular-nums">
+                                                {formatCompactNumber(
+                                                    totals.requests
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </CardContent>
@@ -154,10 +169,14 @@ export default function UsagePage() {
                                         onChange={setMetric}
                                     />
                                 </div>
-                                <DailyUsageMultiChart
-                                    series={series}
-                                    metric={metric}
-                                />
+                                {isLoading ? (
+                                    <Skeleton className="h-48 w-full rounded-lg" />
+                                ) : (
+                                    <DailyUsageMultiChart
+                                        series={series}
+                                        metric={metric}
+                                    />
+                                )}
                             </CardContent>
                         </Card>
 
@@ -198,14 +217,35 @@ export default function UsagePage() {
                                                             {k.name}
                                                         </div>
                                                     </div>
-                                                    <div className="text-sm font-semibold tabular-nums">
-                                                        {formatCompactNumber(
-                                                            total
-                                                        )}
-                                                    </div>
+                                                    {isLoading && !data ? (
+                                                        <Skeleton className="h-4 w-12 rounded-md" />
+                                                    ) : (
+                                                        <div className="text-sm font-semibold tabular-nums">
+                                                            {formatCompactNumber(
+                                                                total
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                {!models ||
-                                                models.length === 0 ? (
+                                                {isLoading && !data ? (
+                                                    <div className="mt-3 space-y-2.5 pl-5">
+                                                        {Array.from({
+                                                            length: 2,
+                                                        }).map((_, j) => (
+                                                            <div
+                                                                key={j}
+                                                                className="space-y-1.5"
+                                                            >
+                                                                <div className="flex items-center justify-between gap-3">
+                                                                    <Skeleton className="h-3 w-24 rounded-md" />
+                                                                    <Skeleton className="h-3 w-10 rounded-md" />
+                                                                </div>
+                                                                <Skeleton className="h-1 w-full rounded-full" />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : !models ||
+                                                  models.length === 0 ? (
                                                     <div className="mt-3 pl-5 text-xs text-muted-foreground">
                                                         No usage in{" "}
                                                         {rangeLabel.toLowerCase()}
