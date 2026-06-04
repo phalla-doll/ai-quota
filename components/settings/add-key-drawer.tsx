@@ -17,11 +17,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Switch } from "@/components/ui/switch"
 import { useAddApiKey } from "@/hooks/use-api-keys"
 import { validateKey } from "@/lib/zai-client"
 import type { ZaiEndpoint } from "@/lib/types"
-import { cn } from "@/lib/utils"
 
 type AddKeyDrawerProps = {
     open?: boolean
@@ -46,14 +45,14 @@ export function AddKeyDrawer({
     )
     const [name, setName] = React.useState("")
     const [apiKey, setApiKey] = React.useState("")
-    const [endpoint, setEndpoint] = React.useState<ZaiEndpoint>("paas")
+    const [endpoint, setEndpoint] = React.useState<ZaiEndpoint>("coding")
     const [validating, setValidating] = React.useState(false)
     const add = useAddApiKey()
 
     function reset() {
         setName("")
         setApiKey("")
-        setEndpoint("paas")
+        setEndpoint("coding")
     }
 
     async function onSubmit(e: React.FormEvent) {
@@ -127,26 +126,24 @@ export function AddKeyDrawer({
                                 className="h-12 px-4 text-base md:text-base"
                             />
                         </div>
-                        <div className="space-y-1.5">
-                            <Label>Endpoint</Label>
-                            <RadioGroup
-                                value={endpoint}
-                                onValueChange={(v) =>
-                                    setEndpoint(v as ZaiEndpoint)
+                        <div className="flex items-center justify-between rounded-2xl border border-input px-4 py-3">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="endpoint-switch">
+                                    Coding Plan
+                                </Label>
+                                <p className="text-xs text-muted-foreground">
+                                    {endpoint === "coding"
+                                        ? "Using Coding Plan endpoint"
+                                        : "Using Standard API endpoint"}
+                                </p>
+                            </div>
+                            <Switch
+                                id="endpoint-switch"
+                                checked={endpoint === "coding"}
+                                onCheckedChange={(checked) =>
+                                    setEndpoint(checked ? "coding" : "paas")
                                 }
-                                className="grid grid-cols-2 gap-2"
-                            >
-                                <EndpointOption
-                                    value="paas"
-                                    label="Standard API"
-                                    active={endpoint === "paas"}
-                                />
-                                <EndpointOption
-                                    value="coding"
-                                    label="Coding Plan"
-                                    active={endpoint === "coding"}
-                                />
-                            </RadioGroup>
+                            />
                         </div>
                     </div>
 
@@ -167,33 +164,5 @@ export function AddKeyDrawer({
                 </form>
             </DrawerContent>
         </Drawer>
-    )
-}
-
-function EndpointOption({
-    value,
-    label,
-    active,
-}: {
-    value: ZaiEndpoint
-    label: string
-    active: boolean
-}) {
-    const id = `endpoint-${value}`
-    return (
-        <Label
-            htmlFor={id}
-            className={cn(
-                "flex cursor-pointer flex-col items-start gap-1 rounded-2xl border bg-transparent px-4 py-3 text-left font-normal transition-colors",
-                active
-                    ? "border-primary bg-primary/5"
-                    : "border-input hover:bg-muted/50"
-            )}
-        >
-            <span className="sr-only">
-                <RadioGroupItem id={id} value={value} />
-            </span>
-            <span className="text-sm leading-none font-medium">{label}</span>
-        </Label>
     )
 }
