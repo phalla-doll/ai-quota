@@ -104,7 +104,7 @@ export function DailyUsageMultiChart({ series, metric }: Props) {
                     </LineChart>
                 </ResponsiveContainer>
             </div>
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 px-2">
+            <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1.5">
                 {series.map((s, i) => (
                     <div
                         key={s.keyId}
