@@ -13,9 +13,9 @@ Designed to run as a Telegram Mini App, but works fine as a plain web app too.
 - **Tokens & requests** over the last 7 or 30 days (line chart + totals).
 - **Per-model breakdown** — donut + ranked list — for Today / 7d / 30d.
 - **Playground** — pick a model, send a streamed chat completion, see the per-call cost and token breakdown, watch it accumulate in the local usage log.
-- **In-app threshold alerts** at 50% / 75% / 90% / 95% if you set a monthly budget on a key.
+- **In-app threshold alerts** at 50% / 75% / 90% / 95%, fired whenever any key with a monthly budget crosses a threshold.
 
-Numbers shown on the Dashboard / Usage / Models tabs come from Z.ai's own monitor endpoints (the ones that power their dashboard). Playground-recorded usage is a separate local log for pay-as-you-go tracking with a budget.
+Numbers shown on the Overview and Usage tabs come from Z.ai's own monitor endpoints (the ones that power their dashboard), aggregated across every key you've added. Playground-recorded usage is a separate local log for pay-as-you-go tracking with a budget.
 
 ---
 
@@ -55,7 +55,7 @@ Entirely in `localStorage`. There is no database, no auth, no Worker, no D1.
 | `zai-tracker-keys` | Array of API keys (`{ id, name, endpoint, key, monthlyBudgetCents, … }`) |
 | `zai:events:{keyId}` | Append-only Playground call log per key (token counts, cost in cents) |
 | `zai-tracker-ui` | Selected key id, usage-invalidation counter |
-| `zai-tracker-alerts` | Per-key `{enabled, lastFiredPeriod}` thresholds |
+| `zai-tracker-alerts` | Global threshold toggles + per-key `lastFiredPeriod` |
 
 Plain plaintext. Fine for personal use on a device you control; **not** suitable as a shared hosted service.
 
@@ -77,14 +77,14 @@ Because these aren't in the public reference, they can change without warning. I
 ## Routes
 
 ```
-/                Dashboard  — Quota + model breakdown (+ budget cards if budget set)
-/usage           Usage      — Daily tokens / requests, totals, range picker
+/                Overview   — Per-key quota carousel + Tokens by model aggregated across all keys
+/usage           Usage      — Totals + daily breakdown (one line per key), aggregated across all keys
 /playground      Playground — Pick model, send prompt, see streamed reply + cost
-/models          Models     — Total tokens, per-model ranked list
 /settings        Settings   — Manage keys, alert thresholds, dark mode
+/models          Models     — Total tokens, per-model ranked list (hidden from nav, still routable)
 ```
 
-Bottom-tab nav, 5 tabs.
+Bottom-tab nav, 4 tabs.
 
 ---
 
@@ -98,10 +98,10 @@ pnpm dev
 Open `http://localhost:3000`.
 
 1. **Settings → Add API key** → paste your Z.ai key, pick `Standard API` or `Coding Plan`, optionally set a monthly budget. The drawer validates against `/models` before saving.
-2. **Dashboard** populates immediately — your real plan tier and quota, fetched on a 60s refresh.
+2. **Overview** populates immediately — your real plan tier and quota, fetched on a 60s refresh.
 3. **Playground** — pick a model, send a prompt. Cost gets computed from the local pricing table and appended to the per-key event log.
 
-You can paste multiple keys; the top-right pill on each screen switches between them.
+You can paste multiple keys. Overview and Usage aggregate across all of them; Playground has a key switcher in the top-right.
 
 ---
 

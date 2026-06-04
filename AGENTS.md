@@ -29,21 +29,24 @@ Single Next.js app, **no backend, no database, no auth**. State lives in `localS
 `app/api/zai/[...path]/route.ts` is a stateless pass-through to Z.ai. It reads `Authorization` and `x-zai-endpoint` from the request and forwards to one of three Z.ai bases:
 - `https://api.z.ai/api/paas/v4` — standard inference
 - `https://api.z.ai/api/coding/paas/v4` — Coding Plan inference
-- `https://api.z.ai/api` — **undocumented** monitor endpoints (`/monitor/usage/quota/limit`, `/monitor/usage/model-usage`) that power the Dashboard / Usage / Models tabs
+- `https://api.z.ai/api` — **undocumented** monitor endpoints (`/monitor/usage/quota/limit`, `/monitor/usage/model-usage`) that power the Overview and Usage tabs
 
 The monitor endpoints aren't in Z.ai's public reference and field names can change without warning. If a card surfaces a 4xx/5xx, check those first.
 
 ### Client data flow
-- **TanStack Query** wraps the proxy calls (`lib/zai-monitor.ts`, `lib/zai-client.ts`), 60s refresh on the dashboard.
-- **Zustand** stores in `lib/stores/`: `ui-store` (selected key id, invalidation counter), `alerts-store` (per-key threshold state), `auth-store`.
+- **TanStack Query** wraps the proxy calls (`lib/zai-monitor.ts`, `lib/zai-client.ts`), 60s refresh on the dashboard. `useKeysModelUsage(keys, days)` in `hooks/use-key-quota.ts` fans out one query per key via `useQueries` — Overview and Usage both aggregate from it.
+- **Zustand** stores in `lib/stores/`: `ui-store` (selected key id, invalidation counter), `alerts-store` (global threshold toggles + per-key fired tracking), `auth-store`.
 - **localStorage** is the source of truth for everything user-owned:
   - `zai-tracker-keys` — API keys (`{ id, name, endpoint, key, monthlyBudgetCents, … }`)
   - `zai:events:{keyId}` — append-only Playground call log (tokens, cost in cents)
   - `zai-tracker-ui`, `zai-tracker-alerts`
 - Playground cost is computed locally from `lib/zai-pricing.ts` (hand-maintained table — approximate).
+- Per-key chart/badge colors come from `lib/key-palette.ts` — the same key index always maps to the same hue across Overview and Usage.
 
 ### Routes (`app/(app)/`)
-`/` Dashboard · `/usage` · `/playground` · `/models` · `/settings`. Bottom-tab nav.
+`/` Overview · `/usage` · `/playground` · `/settings`. Bottom-tab nav. `/models` still exists as a route but is hidden from the nav (`components/layout/bottom-nav.tsx`).
+
+Overview and Usage aggregate across **all** keys (totals, pie, daily lines). Playground stays single-key. The header key switcher only shows on pages that use `AppHeader`'s default `rightAction="switcher"`; Overview and Usage opt into `rightAction="add"` for an icon-only `+` button instead.
 
 ### Telegram Mini App
 `components/providers/telegram-provider.tsx` initializes `@telegram-apps/sdk-react`, falls back to a dev mock outside Telegram. There is **no `initData` HMAC validation** — there is no server to do it on.
