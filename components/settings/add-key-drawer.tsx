@@ -46,7 +46,6 @@ export function AddKeyDrawer({
     )
     const [name, setName] = React.useState("")
     const [apiKey, setApiKey] = React.useState("")
-    const [budget, setBudget] = React.useState("")
     const [endpoint, setEndpoint] = React.useState<ZaiEndpoint>("paas")
     const [validating, setValidating] = React.useState(false)
     const add = useAddApiKey()
@@ -54,7 +53,6 @@ export function AddKeyDrawer({
     function reset() {
         setName("")
         setApiKey("")
-        setBudget("")
         setEndpoint("paas")
     }
 
@@ -71,13 +69,11 @@ export function AddKeyDrawer({
             toast.error(`Key rejected: ${check.error}`)
             return
         }
-        const budgetNum = budget ? Number(budget) : 0
         await add.mutateAsync({
             name: name.trim(),
             apiKey: apiKey.trim(),
             endpoint,
-            monthlyBudgetCents:
-                budgetNum > 0 ? Math.round(budgetNum * 100) : null,
+            monthlyBudgetCents: null,
         })
         toast.success(`Added “${name.trim()}”`)
         reset()
@@ -143,34 +139,18 @@ export function AddKeyDrawer({
                                 <EndpointOption
                                     value="paas"
                                     label="Standard API"
-                                    sub="/api/paas/v4"
                                     active={endpoint === "paas"}
                                 />
                                 <EndpointOption
                                     value="coding"
                                     label="Coding Plan"
-                                    sub="/api/coding/paas/v4"
                                     active={endpoint === "coding"}
                                 />
                             </RadioGroup>
                         </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="key-budget">
-                                Monthly budget (USD, optional)
-                            </Label>
-                            <Input
-                                id="key-budget"
-                                type="number"
-                                inputMode="decimal"
-                                placeholder="50.00"
-                                value={budget}
-                                onChange={(e) => setBudget(e.target.value)}
-                                className="h-12 px-4 text-base md:text-base"
-                            />
-                        </div>
                     </div>
 
-                    <DrawerFooter>
+                    <DrawerFooter className="pt-6">
                         <Button size="xl" type="submit" disabled={busy}>
                             {validating
                                 ? "Validating..."
@@ -193,12 +173,10 @@ export function AddKeyDrawer({
 function EndpointOption({
     value,
     label,
-    sub,
     active,
 }: {
     value: ZaiEndpoint
     label: string
-    sub: string
     active: boolean
 }) {
     const id = `endpoint-${value}`
@@ -216,9 +194,6 @@ function EndpointOption({
                 <RadioGroupItem id={id} value={value} />
             </span>
             <span className="text-sm font-medium leading-none">{label}</span>
-            <span className="text-muted-foreground font-mono text-[11px]">
-                {sub}
-            </span>
         </Label>
     )
 }
