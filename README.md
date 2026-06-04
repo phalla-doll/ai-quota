@@ -10,45 +10,45 @@ The app is optimized for mobile usage and provides instant visibility into API c
 
 ---
 
-# Goal
+## Goal
 
 Provide a fast and convenient way to view:
 
-* Remaining quota
-* Current month usage
-* Daily usage
-* Token consumption
-* Estimated monthly cost
-* Usage history
-* Model-specific statistics
+- Remaining quota
+- Current month usage
+- Daily usage
+- Token consumption
+- Estimated monthly cost
+- Usage history
+- Model-specific statistics
 
 Inside Telegram.
 
 ---
 
-# Target Users
+## Target Users
 
-## Individual Developers
+### Individual Developers
 
 Monitor personal API usage.
 
-## Teams
+### Teams
 
 Track shared API key consumption.
 
-## AI Power Users
+### AI Power Users
 
 Keep track of multiple Z AI models and projects.
 
 ---
 
-# Core Features
+## Core Features
 
-## Dashboard
+### Dashboard
 
 Display summary information.
 
-### Metrics
+#### Metrics
 
 ```txt
 Remaining Credits
@@ -59,7 +59,7 @@ Total Requests
 Total Tokens
 ```
 
-### Example
+#### Example
 
 ```txt
 Remaining:
@@ -80,7 +80,7 @@ Tokens:
 
 ---
 
-## Usage Progress
+### Usage Progress
 
 Visual quota consumption.
 
@@ -93,7 +93,7 @@ Used
 
 ---
 
-## Daily Usage Chart
+### Daily Usage Chart
 
 Track usage trends.
 
@@ -106,11 +106,11 @@ Last 30 Days
 
 ---
 
-## Model Usage
+### Model Usage
 
 Breakdown by model.
 
-### Example
+#### Example
 
 ```txt
 glm-5.1
@@ -125,7 +125,7 @@ glm-coding
 
 ---
 
-## Request Analytics
+### Request Analytics
 
 Display:
 
@@ -138,11 +138,11 @@ Peak Usage Hour
 
 ---
 
-## Spending Forecast
+### Spending Forecast
 
 Estimate end-of-month cost.
 
-### Example
+#### Example
 
 ```txt
 Current Spend:
@@ -157,7 +157,7 @@ $50.00
 
 ---
 
-## Telegram Notifications
+### Telegram Notifications
 
 Send alerts when:
 
@@ -181,11 +181,11 @@ $4.81
 
 ---
 
-## Multi API Key Support
+### Multi API Key Support
 
 Manage multiple environments.
 
-### Example
+#### Example
 
 ```txt
 Personal
@@ -198,11 +198,11 @@ Switch between them instantly.
 
 ---
 
-## Historical Reports
+### Historical Reports
 
 View usage history.
 
-### Time Ranges
+#### Time Ranges
 
 ```txt
 Today
@@ -214,7 +214,7 @@ Today
 
 ---
 
-## Export Reports
+### Export Reports
 
 Formats:
 
@@ -226,9 +226,9 @@ Excel
 
 ---
 
-# Telegram Mini App Experience
+## Telegram Mini App Experience
 
-## Home Screen
+### Home Screen
 
 ```txt
 ┌──────────────────┐
@@ -248,7 +248,7 @@ Excel
 
 ---
 
-## Navigation
+### Navigation
 
 ```txt
 Dashboard
@@ -262,9 +262,9 @@ Bottom-tab layout.
 
 ---
 
-# Technical Stack
+## Technical Stack
 
-## Frontend
+### Frontend
 
 ```txt
 Next.js 15
@@ -279,7 +279,7 @@ Zustand
 
 ---
 
-## Backend
+### Backend
 
 ```txt
 Cloudflare Workers
@@ -296,7 +296,7 @@ Serve Dashboard Data
 
 ---
 
-## Database
+### Database
 
 ```txt
 Cloudflare D1
@@ -305,7 +305,7 @@ Drizzle ORM
 
 ---
 
-## Storage
+### Storage
 
 ```txt
 Cloudflare KV
@@ -321,9 +321,9 @@ Notification Preferences
 
 ---
 
-# Database Schema
+## Database Schema
 
-## users
+### users
 
 ```sql
 id
@@ -334,7 +334,7 @@ created_at
 
 ---
 
-## api_keys
+### api_keys
 
 ```sql
 id
@@ -346,7 +346,7 @@ created_at
 
 ---
 
-## usage_snapshots
+### usage_snapshots
 
 ```sql
 id
@@ -359,7 +359,7 @@ captured_at
 
 ---
 
-## alerts
+### alerts
 
 ```sql
 id
@@ -370,9 +370,9 @@ enabled
 
 ---
 
-# API Layer
+## API Layer
 
-## Z AI Client
+### Z AI Client
 
 Base URL:
 
@@ -390,9 +390,9 @@ Worker fetches usage statistics periodically and stores snapshots.
 
 ---
 
-# Security
+## Security
 
-## API Key Storage
+### API Key Storage
 
 Requirements:
 
@@ -402,7 +402,7 @@ Never Exposed To Frontend
 Server Side Access Only
 ```
 
-### Recommended
+#### Recommended
 
 ```txt
 Cloudflare Secrets
@@ -412,7 +412,7 @@ Worker Environment Variables
 
 ---
 
-# Background Jobs
+## Background Jobs
 
 Run every:
 
@@ -433,15 +433,15 @@ Check Alerts
 
 ---
 
-# Future Features
+## Future Features
 
-## Widget Mode
+### Widget Mode
 
 Pinned Telegram dashboard.
 
 ---
 
-## AI Insights
+### AI Insights
 
 Generate:
 
@@ -453,7 +453,7 @@ Model Recommendations
 
 ---
 
-## Multi Provider Support
+### Multi Provider Support
 
 Future expansion:
 
@@ -470,17 +470,17 @@ Single dashboard for all AI providers.
 
 ---
 
-# MVP Scope
+## MVP Scope
 
 Version 1 should include:
 
-* Telegram Login
-* API Key Management
-* Usage Dashboard
-* Quota Tracking
-* Daily Usage Chart
-* Model Breakdown
-* Notifications
-* Historical Reports
+- Telegram Login
+- API Key Management
+- Usage Dashboard
+- Quota Tracking
+- Daily Usage Chart
+- Model Breakdown
+- Notifications
+- Historical Reports
 
 The MVP should be built as a Telegram Mini App using Next.js, Telegram Mini Apps SDK, Cloudflare Workers, D1, and Cloudflare KV. The architecture should be provider-agnostic so that support for OpenAI, Anthropic, NVIDIA, and other AI platforms can be added later without major refactoring.
