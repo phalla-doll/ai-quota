@@ -24,3 +24,5 @@ export type ModelUsage = {
     tokens: number
     costCents: number
 }
+
+export type AlertThreshold = 50 | 75 | 90 | 95

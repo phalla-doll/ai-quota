@@ -4,6 +4,7 @@ import { useTheme } from "next-themes"
 import { AppHeader } from "@/components/layout/app-header"
 import { AddKeyDrawer } from "@/components/settings/add-key-drawer"
 import { ApiKeyList } from "@/components/settings/api-key-list"
+import { AlertThresholds } from "@/components/settings/alert-thresholds"
 import { SettingsSection } from "@/components/settings/section"
 import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
@@ -27,6 +28,13 @@ export default function SettingsPage() {
                         <AddKeyDrawer />
                         <ApiKeyList />
                     </div>
+                </SettingsSection>
+
+                <SettingsSection
+                    title="Alerts"
+                    description="In-app warnings when monthly usage crosses each threshold."
+                >
+                    <AlertThresholds />
                 </SettingsSection>
 
                 <SettingsSection title="Appearance">
