@@ -93,6 +93,21 @@ export function useAddApiKey() {
     })
 }
 
+export function useRenameApiKey() {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: async ({ id, name }: { id: string; name: string }) => {
+            const keys = loadKeys().map((k) =>
+                k.id === id ? { ...k, name } : k
+            )
+            saveKeys(keys)
+        },
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["api-keys"] })
+        },
+    })
+}
+
 export function useDeleteApiKey() {
     const qc = useQueryClient()
     return useMutation({

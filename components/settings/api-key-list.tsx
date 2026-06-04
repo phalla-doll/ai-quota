@@ -7,6 +7,7 @@ import {
     Delete01Icon,
     Key01Icon,
     Copy01Icon,
+    Edit02Icon,
     EyeIcon,
     EyeOffIcon,
     CheckmarkCircle01Icon,
@@ -21,6 +22,8 @@ import {
     DrawerFooter,
     DrawerClose,
 } from "@/components/ui/drawer"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -31,7 +34,11 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useApiKeys, useDeleteApiKey } from "@/hooks/use-api-keys"
+import {
+    useApiKeys,
+    useDeleteApiKey,
+    useRenameApiKey,
+} from "@/hooks/use-api-keys"
 import { validateKey } from "@/lib/zai-client"
 import type { ApiKey } from "@/lib/types"
 
@@ -82,9 +89,33 @@ export function ApiKeyList() {
 
 function KeyRow({ apiKey }: { apiKey: ApiKey }) {
     const [confirmDelete, setConfirmDelete] = React.useState(false)
+    const [renameOpen, setRenameOpen] = React.useState(false)
+    const [renameValue, setRenameValue] = React.useState(apiKey.name)
     const [revealed, setRevealed] = React.useState(false)
     const [testing, setTesting] = React.useState(false)
     const del = useDeleteApiKey()
+    const rename = useRenameApiKey()
+
+    function openRename() {
+        setRenameValue(apiKey.name)
+        setRenameOpen(true)
+    }
+
+    async function onRename(e: React.FormEvent) {
+        e.preventDefault()
+        const next = renameValue.trim()
+        if (!next) {
+            toast.error("Name can't be empty")
+            return
+        }
+        if (next === apiKey.name) {
+            setRenameOpen(false)
+            return
+        }
+        await rename.mutateAsync({ id: apiKey.id, name: next })
+        toast.success(`Renamed to “${next}”`)
+        setRenameOpen(false)
+    }
 
     async function onDelete() {
         await del.mutateAsync(apiKey.id)
@@ -151,6 +182,10 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                         <HugeiconsIcon icon={Copy01Icon} size={16} />
                         Copy key
                     </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={openRename}>
+                        <HugeiconsIcon icon={Edit02Icon} size={16} />
+                        Rename
+                    </DropdownMenuItem>
                     <DropdownMenuItem onSelect={onTest} disabled={testing}>
                         <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} />
                         {testing ? "Testing..." : "Test key"}
@@ -165,6 +200,51 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
+
+            <Drawer open={renameOpen} onOpenChange={setRenameOpen}>
+                <DrawerContent>
+                    <form onSubmit={onRename}>
+                        <DrawerHeader>
+                            <DrawerTitle>Rename key</DrawerTitle>
+                            <DrawerDescription>
+                                Give this key a new display name. Only stored in
+                                this browser.
+                            </DrawerDescription>
+                        </DrawerHeader>
+                        <div className="space-y-1.5 px-4">
+                            <Label htmlFor={`rename-${apiKey.id}`}>Name</Label>
+                            <Input
+                                id={`rename-${apiKey.id}`}
+                                value={renameValue}
+                                onChange={(e) =>
+                                    setRenameValue(e.target.value)
+                                }
+                                autoComplete="off"
+                                autoFocus
+                                className="h-12 px-4 text-base md:text-base"
+                            />
+                        </div>
+                        <DrawerFooter className="pt-6">
+                            <Button
+                                size="xl"
+                                type="submit"
+                                disabled={rename.isPending}
+                            >
+                                {rename.isPending ? "Saving..." : "Save"}
+                            </Button>
+                            <DrawerClose asChild>
+                                <Button
+                                    size="xl"
+                                    type="button"
+                                    variant="outline"
+                                >
+                                    Cancel
+                                </Button>
+                            </DrawerClose>
+                        </DrawerFooter>
+                    </form>
+                </DrawerContent>
+            </Drawer>
 
             <Drawer open={confirmDelete} onOpenChange={setConfirmDelete}>
                 <DrawerContent>
