@@ -38,7 +38,7 @@ function checkAlerts(apiKey: ApiKey) {
     const used = monthToDateCents(apiKey.id)
     const pct = (used / budget) * 100
     const store = useAlertsStore.getState()
-    const enabled = store.getEnabled(apiKey.id)
+    const enabled = store.getEnabled()
     const fired = store.getFired(apiKey.id)
     const period = format(new Date(), "yyyy-MM")
     for (const t of ALL_THRESHOLDS as AlertThreshold[]) {

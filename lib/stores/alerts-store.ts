@@ -7,9 +7,9 @@ import type { AlertThreshold } from "@/lib/types"
 const ALL: AlertThreshold[] = [50, 75, 90, 95]
 
 type FiredMap = Record<string, Record<AlertThreshold, string | null>>
-type EnabledMap = Record<string, Record<AlertThreshold, boolean>>
+type EnabledMap = Record<AlertThreshold, boolean>
 
-const defaultEnabled: Record<AlertThreshold, boolean> = {
+const defaultEnabled: EnabledMap = {
     50: false,
     75: true,
     90: true,
@@ -26,34 +26,28 @@ const defaultFired: Record<AlertThreshold, string | null> = {
 type AlertsState = {
     enabled: EnabledMap
     fired: FiredMap
-    toggle: (keyId: string, threshold: AlertThreshold) => void
+    toggle: (threshold: AlertThreshold) => void
     markFired: (
         keyId: string,
         threshold: AlertThreshold,
         period: string
     ) => void
-    getEnabled: (keyId: string) => Record<AlertThreshold, boolean>
+    getEnabled: () => EnabledMap
     getFired: (keyId: string) => Record<AlertThreshold, string | null>
 }
 
 export const useAlertsStore = create<AlertsState>()(
     persist(
         (set, get) => ({
-            enabled: {},
+            enabled: defaultEnabled,
             fired: {},
-            toggle: (keyId, threshold) =>
-                set((s) => {
-                    const cur = s.enabled[keyId] ?? defaultEnabled
-                    return {
-                        enabled: {
-                            ...s.enabled,
-                            [keyId]: {
-                                ...cur,
-                                [threshold]: !cur[threshold],
-                            },
-                        },
-                    }
-                }),
+            toggle: (threshold) =>
+                set((s) => ({
+                    enabled: {
+                        ...s.enabled,
+                        [threshold]: !s.enabled[threshold],
+                    },
+                })),
             markFired: (keyId, threshold, period) =>
                 set((s) => {
                     const cur = s.fired[keyId] ?? defaultFired
@@ -64,10 +58,17 @@ export const useAlertsStore = create<AlertsState>()(
                         },
                     }
                 }),
-            getEnabled: (keyId) => get().enabled[keyId] ?? defaultEnabled,
+            getEnabled: () => get().enabled,
             getFired: (keyId) => get().fired[keyId] ?? defaultFired,
         }),
-        { name: "zai-tracker-alerts" }
+        {
+            name: "zai-tracker-alerts",
+            version: 2,
+            migrate: () => ({
+                enabled: defaultEnabled,
+                fired: {},
+            }),
+        }
     )
 )
 
