@@ -39,10 +39,7 @@ export function AppHeader({
     const [addOpen, setAddOpen] = React.useState(false)
 
     const showSwitcher =
-        rightAction === "switcher" &&
-        showKeySwitcher &&
-        keys &&
-        keys.length > 0
+        rightAction === "switcher" && showKeySwitcher && keys && keys.length > 0
     const showAdd = rightAction === "add"
 
     return (

@@ -113,9 +113,7 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                 <div className="mt-2 divide-y">
                     {perKey.map((p) => {
                         const share =
-                            total > 0
-                                ? Math.round((p.total / total) * 100)
-                                : 0
+                            total > 0 ? Math.round((p.total / total) * 100) : 0
                         return (
                             <div
                                 key={p.key.id}
