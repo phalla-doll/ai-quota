@@ -13,7 +13,7 @@ export function AlertThresholds() {
 
     return (
         <Card className="shadow-none py-0">
-            <CardContent className="divide-border/60 divide-y px-0 py-0">
+            <CardContent className="divide-border/60 divide-y px-0 py-2">
                 {thresholds.map((t) => (
                     <div
                         key={t}

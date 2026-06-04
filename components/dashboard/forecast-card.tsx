@@ -33,7 +33,7 @@ export function ForecastCard({
 
     return (
         <Card className="shadow-none py-0">
-            <CardContent className="px-4 py-4">
+            <CardContent className="px-5 py-5">
                 <div className="flex items-center justify-between">
                     <div>
                         <div className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
