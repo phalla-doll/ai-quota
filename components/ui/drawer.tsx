@@ -48,12 +48,52 @@ function DrawerOverlay({
 function DrawerContent({
     className,
     children,
+    ref,
     ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Content>) {
+    const innerRef = React.useRef<HTMLDivElement>(null)
+    const setRefs = React.useCallback(
+        (node: HTMLDivElement | null) => {
+            innerRef.current = node
+            if (typeof ref === "function") ref(node)
+            else if (ref) (ref as React.RefObject<HTMLDivElement | null>).current = node
+        },
+        [ref]
+    )
+
+    // vaul writes inline `height` / `bottom` on the content element to lift it
+    // above the soft keyboard. On Telegram iOS WebView the reset path can miss
+    // (resize event doesn't refire, or focus leaves the input first), leaving
+    // the drawer with `bottom: <Npx>` so its lower edge sits below the visible
+    // viewport. Clear those inline styles once the keyboard is gone.
+    React.useEffect(() => {
+        const el = innerRef.current
+        if (!el) return
+        const vv = typeof window !== "undefined" ? window.visualViewport : null
+
+        const reset = () => {
+            if (vv && vv.height < window.innerHeight - 1) return
+            requestAnimationFrame(() => {
+                if (!innerRef.current) return
+                innerRef.current.style.bottom = ""
+                innerRef.current.style.height = ""
+            })
+        }
+
+        el.addEventListener("focusout", reset)
+        vv?.addEventListener("resize", reset)
+
+        return () => {
+            el.removeEventListener("focusout", reset)
+            vv?.removeEventListener("resize", reset)
+        }
+    }, [])
+
     return (
         <DrawerPortal data-slot="drawer-portal">
             <DrawerOverlay />
             <DrawerPrimitive.Content
+                ref={setRefs}
                 data-slot="drawer-content"
                 className={cn(
                     "group/drawer-content fixed z-50 flex h-auto flex-col bg-transparent p-4 text-sm before:absolute before:inset-2 before:-z-10 before:rounded-4xl before:border before:border-border before:bg-popover before:shadow-xl data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:max-h-[80vh] data-[vaul-drawer-direction=left]:inset-y-0 data-[vaul-drawer-direction=left]:left-0 data-[vaul-drawer-direction=left]:w-3/4 data-[vaul-drawer-direction=right]:inset-y-0 data-[vaul-drawer-direction=right]:right-0 data-[vaul-drawer-direction=right]:w-3/4 data-[vaul-drawer-direction=top]:inset-x-0 data-[vaul-drawer-direction=top]:top-0 data-[vaul-drawer-direction=top]:mb-24 data-[vaul-drawer-direction=top]:max-h-[80vh] data-[vaul-drawer-direction=left]:sm:max-w-sm data-[vaul-drawer-direction=right]:sm:max-w-sm",
