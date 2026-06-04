@@ -52,7 +52,10 @@ export function OverallCard({
                             Used
                         </div>
                         <div className="mt-0.5 font-semibold tabular-nums">
-                            −{formatCurrency(usedCents)}
+                            {budgetCents > 0
+                                ? Math.round((usedCents / budgetCents) * 100)
+                                : 0}
+                            %
                         </div>
                     </div>
                 </div>

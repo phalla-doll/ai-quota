@@ -59,7 +59,7 @@ export function IncomeDonut({ models }: IncomeDonutProps) {
         <Card className="shadow-none py-0">
             <CardContent className="px-5 py-5">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-base font-semibold">Income</h2>
+                    <h2 className="text-base font-semibold">Spend by model</h2>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button
@@ -109,7 +109,7 @@ export function IncomeDonut({ models }: IncomeDonutProps) {
                     </ResponsiveContainer>
                     <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                         <div className="text-muted-foreground text-xs">
-                            Total Income
+                            Total spend
                         </div>
                         <div className="text-xl font-bold tabular-nums">
                             {formatCurrency(total)}

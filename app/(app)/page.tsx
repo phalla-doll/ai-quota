@@ -25,7 +25,7 @@ export default function DashboardPage() {
     return (
         <>
             <AppHeader
-                title="Earning"
+                title="Usage"
                 subtitle={selected?.name ?? "No key selected"}
                 showKeySwitcher={hasKeys}
             />
