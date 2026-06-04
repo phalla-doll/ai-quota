@@ -1,7 +1,11 @@
+export type ZaiEndpoint = "paas" | "coding"
+
 export type ApiKey = {
     id: string
     name: string
     provider: "zai"
+    endpoint: ZaiEndpoint
+    key: string
     keyLast4: string
     monthlyBudgetCents: number | null
     createdAt: string
@@ -37,4 +41,12 @@ export type AlertThreshold = 50 | 75 | 90 | 95
 export type AlertConfig = {
     threshold: AlertThreshold
     enabled: boolean
+}
+
+export type UsageEvent = {
+    ts: string
+    model: string
+    tokensInput: number
+    tokensOutput: number
+    costCents: number
 }

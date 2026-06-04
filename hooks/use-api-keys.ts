@@ -2,20 +2,33 @@
 
 import * as React from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { mockApiKeys } from "@/lib/mock-data"
 import { useUiStore } from "@/lib/stores/ui-store"
-import type { ApiKey } from "@/lib/types"
+import { clearEvents } from "@/lib/usage-log"
+import type { ApiKey, ZaiEndpoint } from "@/lib/types"
 
 const STORAGE_KEY = "zai-tracker-keys"
 
 function loadKeys(): ApiKey[] {
-    if (typeof window === "undefined") return mockApiKeys
+    if (typeof window === "undefined") return []
     try {
         const raw = localStorage.getItem(STORAGE_KEY)
-        if (!raw) return mockApiKeys
-        return JSON.parse(raw) as ApiKey[]
+        if (!raw) return []
+        const parsed = JSON.parse(raw) as Partial<ApiKey>[]
+        return parsed
+            .filter((k): k is ApiKey => Boolean(k.id && k.name && k.key))
+            .map((k) => ({
+                id: k.id,
+                name: k.name,
+                provider: "zai",
+                endpoint: (k.endpoint as ZaiEndpoint) ?? "paas",
+                key: k.key,
+                keyLast4: k.keyLast4 ?? k.key.slice(-4),
+                monthlyBudgetCents: k.monthlyBudgetCents ?? null,
+                createdAt: k.createdAt ?? new Date().toISOString(),
+                lastSyncedAt: k.lastSyncedAt ?? null,
+            }))
     } catch {
-        return mockApiKeys
+        return []
     }
 }
 
@@ -52,26 +65,30 @@ export function useSelectedApiKey() {
     return selected
 }
 
+export type AddApiKeyInput = {
+    name: string
+    apiKey: string
+    endpoint: ZaiEndpoint
+    monthlyBudgetCents: number | null
+}
+
 export function useAddApiKey() {
     const qc = useQueryClient()
     return useMutation({
-        mutationFn: async (input: {
-            name: string
-            apiKey: string
-            monthlyBudgetCents: number | null
-        }) => {
+        mutationFn: async (input: AddApiKeyInput) => {
             const keys = loadKeys()
             const next: ApiKey = {
                 id: `key_${crypto.randomUUID().slice(0, 8)}`,
                 name: input.name,
                 provider: "zai",
+                endpoint: input.endpoint,
+                key: input.apiKey,
                 keyLast4: input.apiKey.slice(-4),
                 monthlyBudgetCents: input.monthlyBudgetCents,
                 createdAt: new Date().toISOString(),
                 lastSyncedAt: null,
             }
-            const updated = [...keys, next]
-            saveKeys(updated)
+            saveKeys([...keys, next])
             return next
         },
         onSuccess: () => {
@@ -86,9 +103,22 @@ export function useDeleteApiKey() {
         mutationFn: async (id: string) => {
             const keys = loadKeys().filter((k) => k.id !== id)
             saveKeys(keys)
+            clearEvents(id)
         },
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["api-keys"] })
+        },
+    })
+}
+
+export function useResetUsageLog() {
+    const bump = useUiStore((s) => s.bumpUsage)
+    return useMutation({
+        mutationFn: async (id: string) => {
+            clearEvents(id)
+        },
+        onSuccess: () => {
+            bump()
         },
     })
 }

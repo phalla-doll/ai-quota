@@ -18,18 +18,24 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAddApiKey } from "@/hooks/use-api-keys"
+import { validateKey } from "@/lib/zai-client"
+import type { ZaiEndpoint } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 export function AddKeyDrawer() {
     const [open, setOpen] = React.useState(false)
     const [name, setName] = React.useState("")
     const [apiKey, setApiKey] = React.useState("")
     const [budget, setBudget] = React.useState("")
+    const [endpoint, setEndpoint] = React.useState<ZaiEndpoint>("paas")
+    const [validating, setValidating] = React.useState(false)
     const add = useAddApiKey()
 
     function reset() {
         setName("")
         setApiKey("")
         setBudget("")
+        setEndpoint("paas")
     }
 
     async function onSubmit(e: React.FormEvent) {
@@ -38,10 +44,18 @@ export function AddKeyDrawer() {
             toast.error("Name and API key are required")
             return
         }
+        setValidating(true)
+        const check = await validateKey({ key: apiKey.trim(), endpoint })
+        setValidating(false)
+        if (!check.ok) {
+            toast.error(`Key rejected: ${check.error}`)
+            return
+        }
         const budgetNum = budget ? Number(budget) : 0
         await add.mutateAsync({
             name: name.trim(),
             apiKey: apiKey.trim(),
+            endpoint,
             monthlyBudgetCents:
                 budgetNum > 0 ? Math.round(budgetNum * 100) : null,
         })
@@ -49,6 +63,8 @@ export function AddKeyDrawer() {
         reset()
         setOpen(false)
     }
+
+    const busy = validating || add.isPending
 
     return (
         <Drawer open={open} onOpenChange={setOpen}>
@@ -63,8 +79,8 @@ export function AddKeyDrawer() {
                     <DrawerHeader>
                         <DrawerTitle>New API key</DrawerTitle>
                         <DrawerDescription>
-                            Stored encrypted. We only show the last 4
-                            characters after saving.
+                            Stored in this browser only. We validate against
+                            Z.ai before saving.
                         </DrawerDescription>
                     </DrawerHeader>
 
@@ -80,16 +96,33 @@ export function AddKeyDrawer() {
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="key-secret">Z AI API key</Label>
+                            <Label htmlFor="key-secret">Z.ai API key</Label>
                             <Input
                                 id="key-secret"
                                 type="password"
-                                placeholder="sk-..."
+                                placeholder="paste your key"
                                 value={apiKey}
                                 onChange={(e) => setApiKey(e.target.value)}
                                 autoComplete="off"
                                 inputMode="text"
                             />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label>Endpoint</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <EndpointPill
+                                    label="Standard API"
+                                    sub="/api/paas/v4"
+                                    active={endpoint === "paas"}
+                                    onClick={() => setEndpoint("paas")}
+                                />
+                                <EndpointPill
+                                    label="Coding Plan"
+                                    sub="/api/coding/paas/v4"
+                                    active={endpoint === "coding"}
+                                    onClick={() => setEndpoint("coding")}
+                                />
+                            </div>
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="key-budget">
@@ -107,8 +140,12 @@ export function AddKeyDrawer() {
                     </div>
 
                     <DrawerFooter>
-                        <Button type="submit" disabled={add.isPending}>
-                            {add.isPending ? "Saving..." : "Save key"}
+                        <Button type="submit" disabled={busy}>
+                            {validating
+                                ? "Validating..."
+                                : add.isPending
+                                  ? "Saving..."
+                                  : "Validate & save"}
                         </Button>
                         <DrawerClose asChild>
                             <Button type="button" variant="outline">
@@ -119,5 +156,35 @@ export function AddKeyDrawer() {
                 </form>
             </DrawerContent>
         </Drawer>
+    )
+}
+
+function EndpointPill({
+    label,
+    sub,
+    active,
+    onClick,
+}: {
+    label: string
+    sub: string
+    active: boolean
+    onClick: () => void
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={cn(
+                "flex flex-col items-start rounded-lg border px-3 py-2 text-left transition-colors",
+                active
+                    ? "border-primary bg-primary/5"
+                    : "border-input hover:bg-muted/50"
+            )}
+        >
+            <span className="text-sm font-medium">{label}</span>
+            <span className="text-muted-foreground font-mono text-[10px]">
+                {sub}
+            </span>
+        </button>
     )
 }
