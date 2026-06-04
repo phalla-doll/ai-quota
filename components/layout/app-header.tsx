@@ -40,7 +40,7 @@ export function AppHeader({
         <div
             className={cn(
                 "flex items-start justify-between gap-3 px-4",
-                "pt-[max(calc(env(safe-area-inset-top)+1.5rem),3rem)] pb-4"
+                "pt-[max(calc(env(safe-area-inset-top)+3.5rem),5rem)] pb-4"
             )}
         >
             <div className="min-w-0">
