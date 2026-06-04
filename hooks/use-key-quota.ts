@@ -1,6 +1,6 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueries } from "@tanstack/react-query"
 import { fetchQuotaLimit, fetchModelUsage } from "@/lib/zai-monitor"
 import type { ApiKey } from "@/lib/types"
 
@@ -49,5 +49,18 @@ export function useKeyModelUsage(
             const { start, end } = rangeDays(days)
             return fetchModelUsage(apiKey!.key, start, end)
         },
+    })
+}
+
+export function useKeysModelUsage(keys: ApiKey[], days: number) {
+    return useQueries({
+        queries: keys.map((k) => ({
+            queryKey: ["zai", "monitor", "model-usage", k.id, days],
+            staleTime: 60_000,
+            queryFn: () => {
+                const { start, end } = rangeDays(days)
+                return fetchModelUsage(k.key, start, end)
+            },
+        })),
     })
 }
