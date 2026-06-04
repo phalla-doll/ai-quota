@@ -134,7 +134,7 @@ export function ModelBreakdownCard({ apiKey }: { apiKey: ApiKey }) {
                         return (
                             <Link
                                 key={m.modelName}
-                                href="/models"
+                                href="/usage"
                                 className="-mx-2 flex items-center justify-between gap-3 rounded-lg px-2 py-3 transition-colors hover:bg-muted/40"
                             >
                                 <div className="flex min-w-0 items-center gap-3">

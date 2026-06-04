@@ -57,10 +57,10 @@ export function QuotaCard({ apiKey }: { apiKey: ApiKey }) {
             <CardContent className="space-y-5 px-5 py-5">
                 <div className="space-y-1 text-center">
                     <div className="text-sm text-muted-foreground">
-                        {labelFor(primary)}
+                        {labelFor(primary)} remaining
                     </div>
                     <div className="text-4xl font-bold tracking-tight tabular-nums">
-                        {primary.percentage}%
+                        {100 - primary.percentage}%
                     </div>
                     <div className="text-xs text-muted-foreground">
                         Plan{" "}
@@ -76,7 +76,7 @@ export function QuotaCard({ apiKey }: { apiKey: ApiKey }) {
                     </div>
                 </div>
 
-                <Progress value={primary.percentage} />
+                <Progress value={100 - primary.percentage} />
 
                 {others.length > 0 && (
                     <div className="space-y-3 pt-1">
@@ -87,10 +87,10 @@ export function QuotaCard({ apiKey }: { apiKey: ApiKey }) {
                                         {labelFor(l)}
                                     </span>
                                     <span className="font-medium tabular-nums">
-                                        {l.percentage}%
+                                        {100 - l.percentage}%
                                     </span>
                                 </div>
-                                <Progress value={l.percentage} />
+                                <Progress value={100 - l.percentage} />
                             </div>
                         ))}
                     </div>
