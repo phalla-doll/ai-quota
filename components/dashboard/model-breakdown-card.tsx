@@ -58,7 +58,7 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                         {keys.map((k, i) => (
                             <div
                                 key={k.id}
-                                className="-mx-2 flex flex-col gap-2 rounded-lg px-2 py-3"
+                                className="flex flex-col gap-2 py-3"
                             >
                                 <div className="flex items-center justify-between gap-3">
                                     <div className="flex min-w-0 items-center gap-2">
@@ -73,7 +73,7 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                                             {k.name}
                                         </span>
                                     </div>
-                                    <div className="flex flex-col items-end gap-1">
+                                    <div className="flex items-center gap-2">
                                         <Skeleton className="h-4 w-10 rounded-md" />
                                         <Skeleton className="h-3 w-8 rounded-md" />
                                     </div>
@@ -168,7 +168,7 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                         return (
                             <div
                                 key={p.key.id}
-                                className="-mx-2 flex flex-col gap-2 rounded-lg px-2 py-3"
+                                className="flex flex-col gap-2 py-3"
                             >
                                 <div className="flex items-center justify-between gap-3">
                                     <div className="flex min-w-0 items-center gap-2">
@@ -180,15 +180,15 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                                             {p.key.name}
                                         </span>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-sm font-semibold tabular-nums">
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-sm font-semibold tabular-nums">
                                             {p.errored
                                                 ? "—"
                                                 : formatCompactNumber(p.total)}
-                                        </div>
-                                        <div className="text-xs text-muted-foreground tabular-nums">
+                                        </span>
+                                        <span className="text-xs text-muted-foreground tabular-nums">
                                             {p.errored ? "n/a" : `${share}%`}
-                                        </div>
+                                        </span>
                                     </div>
                                 </div>
                                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
