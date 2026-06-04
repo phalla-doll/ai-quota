@@ -30,8 +30,8 @@ export function AlertThresholds() {
 
     return (
         <Card className="py-0 shadow-none">
-            <CardContent className="divide-y divide-border/60 px-0 py-2">
-                <div className="px-5 pt-1 pb-2 text-xs text-muted-foreground">
+            <CardContent className="divide-y divide-border/60 px-0 py-3">
+                <div className="px-5 py-2 text-xs text-muted-foreground">
                     For <span className="font-medium">{selected.name}</span>
                 </div>
                 {ALL_THRESHOLDS.map((t) => (
