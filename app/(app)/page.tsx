@@ -24,9 +24,9 @@ export default function DashboardPage() {
     return (
         <>
             <AppHeader
-                title="Usage"
-                subtitle={selected?.name ?? "No key selected"}
-                showKeySwitcher={hasKeys}
+                title="Overview"
+                subtitle="Across all your API keys"
+                rightAction="add"
             />
 
             <div className="space-y-4 px-4 pt-3">
@@ -41,7 +41,7 @@ export default function DashboardPage() {
                     <>
                         <QuotaCarousel keys={keys!} />
 
-                        <ModelBreakdownCard apiKey={selected} />
+                        <ModelBreakdownCard keys={keys!} />
 
                         {hasBudget && summary ? (
                             <OverallCard
