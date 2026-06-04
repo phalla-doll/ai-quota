@@ -20,6 +20,15 @@ const fontMono = Geist_Mono({
 export const metadata: Metadata = {
     title: "Z AI Quota Tracker",
     description: "Monitor your Z AI API usage from Telegram",
+    applicationName: "Z AI Quota Tracker",
+    appleWebApp: {
+        capable: true,
+        title: "Z Quota",
+        statusBarStyle: "black-translucent",
+    },
+    formatDetection: {
+        telephone: false,
+    },
 }
 
 export const viewport: Viewport = {
