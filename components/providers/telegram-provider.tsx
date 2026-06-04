@@ -35,6 +35,11 @@ export function useTelegram() {
 
 export function TelegramProvider({ children }: { children: React.ReactNode }) {
     const { setTheme } = useTheme()
+    const setThemeRef = React.useRef(setTheme)
+    React.useEffect(() => {
+        setThemeRef.current = setTheme
+    }, [setTheme])
+
     const [value, setValue] = React.useState<TelegramContextValue>({
         ready: false,
         inTelegram: false,
@@ -43,6 +48,10 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
         colorScheme: "light",
     })
 
+    // Run init exactly once on mount. Depending on `setTheme` causes a loop:
+    // `next-themes` can return a fresh `setTheme` after the context updates we
+    // trigger here, which re-fires `mod.init()` / `webApp.expand()` and spams
+    // Telegram postEvents (visible as a stuck loading state in the app).
     React.useEffect(() => {
         let cancelled = false
 
@@ -107,7 +116,7 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
                     hasStoredPreference = false
                 }
                 if (!hasStoredPreference) {
-                    setTheme(tgColorScheme)
+                    setThemeRef.current(tgColorScheme)
                 }
 
                 setValue({
@@ -148,7 +157,7 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
         return () => {
             cancelled = true
         }
-    }, [setTheme])
+    }, [])
 
     return (
         <TelegramContext.Provider value={value}>
