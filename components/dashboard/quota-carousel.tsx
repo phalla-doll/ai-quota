@@ -53,8 +53,11 @@ export function QuotaCarousel({ keys }: { keys: ApiKey[] }) {
     }
 
     return (
-        <div className="space-y-2">
-            <div className="-mr-4 overflow-hidden" ref={emblaRef}>
+        <div className="space-y-4">
+            <div
+                className="-my-2 -mr-4 -ml-2 overflow-hidden py-2 pl-2"
+                ref={emblaRef}
+            >
                 <div className="flex">
                     {keys.map((k) => (
                         <div
@@ -66,7 +69,7 @@ export function QuotaCarousel({ keys }: { keys: ApiKey[] }) {
                     ))}
                 </div>
             </div>
-            <div className="flex justify-center gap-1.5 pt-1">
+            <div className="flex justify-center gap-1.5 pt-2">
                 {keys.map((k, i) => (
                     <button
                         key={k.id}

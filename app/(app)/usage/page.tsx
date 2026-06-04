@@ -173,10 +173,12 @@ export default function UsagePage() {
                                             ?.slice()
                                             .sort(
                                                 (a, b) =>
-                                                    b.totalTokens - a.totalTokens
+                                                    b.totalTokens -
+                                                    a.totalTokens
                                             )
                                         const total =
-                                            data?.totalUsage.totalTokensUsage ?? 0
+                                            data?.totalUsage.totalTokensUsage ??
+                                            0
                                         return (
                                             <div
                                                 key={k.id}
@@ -201,9 +203,11 @@ export default function UsagePage() {
                                                         )}
                                                     </div>
                                                 </div>
-                                                {!models || models.length === 0 ? (
+                                                {!models ||
+                                                models.length === 0 ? (
                                                     <div className="mt-1.5 pl-4.5 text-xs text-muted-foreground">
-                                                        No usage in {rangeLabel.toLowerCase()}
+                                                        No usage in{" "}
+                                                        {rangeLabel.toLowerCase()}
                                                     </div>
                                                 ) : (
                                                     <div className="mt-1.5 space-y-1 pl-4.5">
@@ -230,7 +234,10 @@ export default function UsagePage() {
                                                                     </div>
                                                                     <div className="flex shrink-0 items-center gap-2 tabular-nums">
                                                                         <span className="text-muted-foreground">
-                                                                            {share}%
+                                                                            {
+                                                                                share
+                                                                            }
+                                                                            %
                                                                         </span>
                                                                         <span className="font-medium">
                                                                             {formatCompactNumber(
