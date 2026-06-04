@@ -163,7 +163,7 @@ export default function UsagePage() {
 
                         <Card className="py-0 shadow-none">
                             <CardContent className="px-5 py-5">
-                                <h2 className="mb-3 text-base font-semibold">
+                                <h2 className="mb-4 text-base font-semibold">
                                     Models by key
                                 </h2>
                                 <div className="divide-y divide-border/60">
@@ -179,18 +179,19 @@ export default function UsagePage() {
                                         const total =
                                             data?.totalUsage.totalTokensUsage ??
                                             0
+                                        const color = keyColor(i)
                                         return (
                                             <div
                                                 key={k.id}
-                                                className="py-3 first:pt-0 last:pb-0"
+                                                className="py-4 first:pt-0 last:pb-0"
                                             >
                                                 <div className="flex items-center justify-between gap-3">
-                                                    <div className="flex min-w-0 items-center gap-2">
+                                                    <div className="flex min-w-0 items-center gap-2.5">
                                                         <span
                                                             className="h-2.5 w-2.5 shrink-0 rounded-full"
                                                             style={{
                                                                 background:
-                                                                    keyColor(i),
+                                                                    color,
                                                             }}
                                                         />
                                                         <div className="truncate text-sm font-medium">
@@ -205,45 +206,61 @@ export default function UsagePage() {
                                                 </div>
                                                 {!models ||
                                                 models.length === 0 ? (
-                                                    <div className="mt-1.5 pl-4.5 text-xs text-muted-foreground">
+                                                    <div className="mt-3 pl-5 text-xs text-muted-foreground">
                                                         No usage in{" "}
                                                         {rangeLabel.toLowerCase()}
                                                     </div>
                                                 ) : (
-                                                    <div className="mt-1.5 space-y-1 pl-4.5">
+                                                    <div className="mt-3 space-y-2.5 pl-5">
                                                         {models.map((m) => {
                                                             const share =
                                                                 total > 0
-                                                                    ? Math.round(
-                                                                          (m.totalTokens /
-                                                                              total) *
-                                                                              100
-                                                                      )
+                                                                    ? (m.totalTokens /
+                                                                          total) *
+                                                                      100
                                                                     : 0
+                                                            const shareLabel =
+                                                                share >= 1
+                                                                    ? `${Math.round(share)}%`
+                                                                    : share > 0
+                                                                      ? "<1%"
+                                                                      : "0%"
                                                             return (
                                                                 <div
                                                                     key={
                                                                         m.modelName
                                                                     }
-                                                                    className="flex items-center justify-between gap-3 text-xs"
+                                                                    className="space-y-1.5"
                                                                 >
-                                                                    <div className="truncate text-muted-foreground">
-                                                                        {
-                                                                            m.modelName
-                                                                        }
-                                                                    </div>
-                                                                    <div className="flex shrink-0 items-center gap-2 tabular-nums">
-                                                                        <span className="text-muted-foreground">
+                                                                    <div className="flex items-center justify-between gap-3 text-[13px]">
+                                                                        <div className="truncate text-muted-foreground">
                                                                             {
-                                                                                share
+                                                                                m.modelName
                                                                             }
-                                                                            %
-                                                                        </span>
-                                                                        <span className="font-medium">
-                                                                            {formatCompactNumber(
-                                                                                m.totalTokens
-                                                                            )}
-                                                                        </span>
+                                                                        </div>
+                                                                        <div className="flex shrink-0 items-center gap-3 tabular-nums">
+                                                                            <span className="w-10 text-right text-muted-foreground">
+                                                                                {
+                                                                                    shareLabel
+                                                                                }
+                                                                            </span>
+                                                                            <span className="min-w-14 text-right font-medium">
+                                                                                {formatCompactNumber(
+                                                                                    m.totalTokens
+                                                                                )}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+                                                                        <div
+                                                                            className="h-full rounded-full transition-[width]"
+                                                                            style={{
+                                                                                width: `${Math.max(share, share > 0 ? 2 : 0)}%`,
+                                                                                background:
+                                                                                    color,
+                                                                                opacity: 0.85,
+                                                                            }}
+                                                                        />
                                                                     </div>
                                                                 </div>
                                                             )
