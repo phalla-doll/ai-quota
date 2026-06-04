@@ -56,7 +56,8 @@ function DrawerContent({
         (node: HTMLDivElement | null) => {
             innerRef.current = node
             if (typeof ref === "function") ref(node)
-            else if (ref) (ref as React.RefObject<HTMLDivElement | null>).current = node
+            else if (ref)
+                (ref as React.RefObject<HTMLDivElement | null>).current = node
         },
         [ref]
     )
