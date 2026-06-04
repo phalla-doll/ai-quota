@@ -21,16 +21,20 @@ export function OverallCard({
             <CardContent className="space-y-5 px-5 py-5">
                 <div className="space-y-1 text-center">
                     <div className="text-muted-foreground text-sm">
-                        Overall remaining
+                        Used this month
                     </div>
                     <div className="text-4xl font-bold tracking-tight tabular-nums">
-                        {formatCurrency(remainingCents)}
+                        {budgetCents > 0
+                            ? Math.round((usedCents / budgetCents) * 100)
+                            : 0}
+                        %
                     </div>
                     <div className="text-muted-foreground text-sm">
                         <span className="text-primary font-medium">
                             {formatCurrency(usedCents)}
                         </span>{" "}
-                        <span className="opacity-60">·</span> This month
+                        <span className="opacity-60">·</span>{" "}
+                        {formatCurrency(remainingCents)} left
                     </div>
                 </div>
 
@@ -49,13 +53,10 @@ export function OverallCard({
                     </div>
                     <div className="px-4 py-3 text-center">
                         <div className="text-muted-foreground text-xs">
-                            Used
+                            Remaining
                         </div>
                         <div className="mt-0.5 font-semibold tabular-nums">
-                            {budgetCents > 0
-                                ? Math.round((usedCents / budgetCents) * 100)
-                                : 0}
-                            %
+                            {formatCurrency(remainingCents)}
                         </div>
                     </div>
                 </div>

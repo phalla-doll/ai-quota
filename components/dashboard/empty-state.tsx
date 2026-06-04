@@ -14,8 +14,8 @@ export function NoApiKeyState() {
                 <div>
                     <div className="font-semibold">No API keys yet</div>
                     <p className="text-muted-foreground mt-1 text-sm">
-                        Add your first Z AI key to start tracking quota and
-                        usage.
+                        Add your Z.ai key in Settings, then send a request
+                        from the Playground to start tracking usage.
                     </p>
                 </div>
                 <Button asChild>
