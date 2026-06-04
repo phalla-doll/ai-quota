@@ -3,7 +3,7 @@
 import { AppHeader } from "@/components/layout/app-header"
 import { OverallCard } from "@/components/dashboard/overall-card"
 import { ForecastCard } from "@/components/dashboard/forecast-card"
-import { QuotaCard } from "@/components/dashboard/quota-card"
+import { QuotaCarousel } from "@/components/dashboard/quota-carousel"
 import { ModelBreakdownCard } from "@/components/dashboard/model-breakdown-card"
 import { NoApiKeyState } from "@/components/dashboard/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -39,7 +39,7 @@ export default function DashboardPage() {
                     <NoApiKeyState />
                 ) : (
                     <>
-                        <QuotaCard apiKey={selected} />
+                        <QuotaCarousel keys={keys!} />
 
                         <ModelBreakdownCard apiKey={selected} />
 
