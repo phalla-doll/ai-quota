@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
+import Script from "next/script"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -50,6 +51,10 @@ export default function RootLayout({
             )}
         >
             <body className="bg-background min-h-svh overscroll-none">
+                <Script
+                    src="https://telegram.org/js/telegram-web-app.js"
+                    strategy="beforeInteractive"
+                />
                 <ThemeProvider>
                     <QueryProvider>
                         <TelegramProvider>{children}</TelegramProvider>

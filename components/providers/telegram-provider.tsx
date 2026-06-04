@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTheme } from "next-themes"
 
 type TelegramUser = {
     id: number
@@ -31,6 +32,7 @@ export function useTelegram() {
 }
 
 export function TelegramProvider({ children }: { children: React.ReactNode }) {
+    const { setTheme } = useTheme()
     const [value, setValue] = React.useState<TelegramContextValue>({
         ready: false,
         inTelegram: false,
@@ -44,19 +46,55 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
 
         async function init() {
             try {
+                if (typeof window === "undefined") return
+
                 const mod = await import("@telegram-apps/sdk-react")
                 if (cancelled) return
-
-                if (typeof window === "undefined") return
 
                 mod.init()
 
                 const launch = mod.retrieveLaunchParams()
                 const tgUser = launch.tgWebAppData?.user
-                const raw =
-                    typeof launch.tgWebAppData === "string"
-                        ? launch.tgWebAppData
-                        : null
+
+                let raw: string | null = null
+                try {
+                    const rawWin = (
+                        window as unknown as {
+                            Telegram?: { WebApp?: { initData?: string } }
+                        }
+                    ).Telegram?.WebApp?.initData
+                    if (typeof rawWin === "string" && rawWin.length > 0) {
+                        raw = rawWin
+                    }
+                } catch {
+                    raw = null
+                }
+
+                try {
+                    const webApp = (
+                        window as unknown as {
+                            Telegram?: {
+                                WebApp?: {
+                                    ready?: () => void
+                                    expand?: () => void
+                                    enableClosingConfirmation?: () => void
+                                }
+                            }
+                        }
+                    ).Telegram?.WebApp
+                    webApp?.ready?.()
+                    webApp?.expand?.()
+                } catch {
+                    /* noop */
+                }
+
+                const tgColorScheme: "light" | "dark" =
+                    launch.tgWebAppThemeParams?.bg_color &&
+                    isDarkHex(launch.tgWebAppThemeParams.bg_color)
+                        ? "dark"
+                        : "light"
+
+                setTheme(tgColorScheme)
 
                 setValue({
                     ready: true,
@@ -71,11 +109,7 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
                           }
                         : null,
                     initDataRaw: raw,
-                    colorScheme: launch.tgWebAppThemeParams
-                        ? document.documentElement.classList.contains("dark")
-                            ? "dark"
-                            : "light"
-                        : "light",
+                    colorScheme: tgColorScheme,
                 })
             } catch {
                 if (cancelled) return
@@ -100,11 +134,21 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
         return () => {
             cancelled = true
         }
-    }, [])
+    }, [setTheme])
 
     return (
         <TelegramContext.Provider value={value}>
             {children}
         </TelegramContext.Provider>
     )
+}
+
+function isDarkHex(hex: string): boolean {
+    const m = hex.replace("#", "")
+    if (m.length !== 6) return false
+    const r = parseInt(m.slice(0, 2), 16)
+    const g = parseInt(m.slice(2, 4), 16)
+    const b = parseInt(m.slice(4, 6), 16)
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    return luminance < 0.5
 }
