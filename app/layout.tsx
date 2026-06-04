@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { QueryProvider } from "@/components/providers/query-provider"
 import { TelegramProvider } from "@/components/providers/telegram-provider"
 import { ScrollLockGuardian } from "@/components/providers/scroll-lock-guardian"
+import { LegacyStorageCleanup } from "@/components/providers/legacy-storage-cleanup"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 
@@ -70,6 +71,7 @@ export default function RootLayout({
                     </QueryProvider>
                 </ThemeProvider>
                 <ScrollLockGuardian />
+                <LegacyStorageCleanup />
                 <Toaster position="top-center" />
             </body>
         </html>

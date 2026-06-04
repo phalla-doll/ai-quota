@@ -9,7 +9,6 @@ import {
     Copy01Icon,
     EyeIcon,
     EyeOffIcon,
-    Refresh01Icon,
     CheckmarkCircle01Icon,
     MoreVerticalIcon,
 } from "@hugeicons/core-free-icons"
@@ -32,13 +31,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-    useApiKeys,
-    useDeleteApiKey,
-    useResetUsageLog,
-} from "@/hooks/use-api-keys"
+import { useApiKeys, useDeleteApiKey } from "@/hooks/use-api-keys"
 import { validateKey } from "@/lib/zai-client"
-import { formatCurrency } from "@/lib/format"
 import type { ApiKey } from "@/lib/types"
 
 export function ApiKeyList() {
@@ -88,22 +82,14 @@ export function ApiKeyList() {
 
 function KeyRow({ apiKey }: { apiKey: ApiKey }) {
     const [confirmDelete, setConfirmDelete] = React.useState(false)
-    const [confirmReset, setConfirmReset] = React.useState(false)
     const [revealed, setRevealed] = React.useState(false)
     const [testing, setTesting] = React.useState(false)
     const del = useDeleteApiKey()
-    const reset = useResetUsageLog()
 
     async function onDelete() {
         await del.mutateAsync(apiKey.id)
         toast.success(`Removed “${apiKey.name}”`)
         setConfirmDelete(false)
-    }
-
-    async function onReset() {
-        await reset.mutateAsync(apiKey.id)
-        toast.success(`Cleared usage for “${apiKey.name}”`)
-        setConfirmReset(false)
     }
 
     async function onCopy() {
@@ -140,9 +126,6 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                 </div>
                 <div className="truncate font-mono text-xs text-muted-foreground">
                     {revealed ? apiKey.key : `•••• ${apiKey.keyLast4}`}
-                    {apiKey.monthlyBudgetCents
-                        ? ` · ${formatCurrency(apiKey.monthlyBudgetCents)}/mo`
-                        : ""}
                 </div>
             </div>
             <DropdownMenu>
@@ -173,10 +156,6 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                         {testing ? "Testing..." : "Test key"}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => setConfirmReset(true)}>
-                        <HugeiconsIcon icon={Refresh01Icon} size={16} />
-                        Reset usage log
-                    </DropdownMenuItem>
                     <DropdownMenuItem
                         onSelect={() => setConfirmDelete(true)}
                         variant="destructive"
@@ -192,7 +171,7 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                     <DrawerHeader>
                         <DrawerTitle>Remove “{apiKey.name}”?</DrawerTitle>
                         <DrawerDescription>
-                            This removes the key and clears its tracked usage.
+                            This removes the key from this browser.
                         </DrawerDescription>
                     </DrawerHeader>
                     <DrawerFooter>
@@ -203,35 +182,6 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                             disabled={del.isPending}
                         >
                             {del.isPending ? "Removing..." : "Remove"}
-                        </Button>
-                        <DrawerClose asChild>
-                            <Button size="xl" variant="outline">
-                                Cancel
-                            </Button>
-                        </DrawerClose>
-                    </DrawerFooter>
-                </DrawerContent>
-            </Drawer>
-
-            <Drawer open={confirmReset} onOpenChange={setConfirmReset}>
-                <DrawerContent>
-                    <DrawerHeader>
-                        <DrawerTitle>
-                            Reset usage for “{apiKey.name}”?
-                        </DrawerTitle>
-                        <DrawerDescription>
-                            Clears the local event log for this key. The key
-                            itself stays.
-                        </DrawerDescription>
-                    </DrawerHeader>
-                    <DrawerFooter>
-                        <Button
-                            size="xl"
-                            variant="destructive"
-                            onClick={onReset}
-                            disabled={reset.isPending}
-                        >
-                            {reset.isPending ? "Clearing..." : "Reset"}
                         </Button>
                         <DrawerClose asChild>
                             <Button size="xl" variant="outline">

@@ -1,25 +1,17 @@
 "use client"
 
 import { AppHeader } from "@/components/layout/app-header"
-import { OverallCard } from "@/components/dashboard/overall-card"
-import { ForecastCard } from "@/components/dashboard/forecast-card"
 import { QuotaCarousel } from "@/components/dashboard/quota-carousel"
 import { ModelBreakdownCard } from "@/components/dashboard/model-breakdown-card"
 import { NoApiKeyState } from "@/components/dashboard/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiKeys, useSelectedApiKey } from "@/hooks/use-api-keys"
-import { useUsageSummary } from "@/hooks/use-usage"
 
 export default function DashboardPage() {
     const { data: keys, isLoading: keysLoading } = useApiKeys()
     const selected = useSelectedApiKey()
-    const { data: summary } = useUsageSummary(selected?.id)
 
     const hasKeys = (keys?.length ?? 0) > 0
-    const hasBudget = (summary?.monthlyBudgetCents ?? 0) > 0
-    const remainingCents = summary
-        ? Math.max(summary.monthlyBudgetCents - summary.usedCents, 0)
-        : 0
 
     return (
         <>
@@ -42,22 +34,6 @@ export default function DashboardPage() {
                         <QuotaCarousel keys={keys!} />
 
                         <ModelBreakdownCard keys={keys!} />
-
-                        {hasBudget && summary ? (
-                            <OverallCard
-                                remainingCents={remainingCents}
-                                usedCents={summary.usedCents}
-                                budgetCents={summary.monthlyBudgetCents}
-                            />
-                        ) : null}
-
-                        {hasBudget && summary ? (
-                            <ForecastCard
-                                usedCents={summary.usedCents}
-                                budgetCents={summary.monthlyBudgetCents}
-                                capturedAt={summary.capturedAt}
-                            />
-                        ) : null}
                     </>
                 )}
             </div>

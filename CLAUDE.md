@@ -34,13 +34,12 @@ Single Next.js app, **no backend, no database, no auth**. State lives in `localS
 The monitor endpoints aren't in Z.ai's public reference and field names can change without warning. If a card surfaces a 4xx/5xx, check those first.
 
 ### Client data flow
-- **TanStack Query** wraps the proxy calls (`lib/zai-monitor.ts`, `lib/zai-client.ts`), 60s refresh on the dashboard. `useKeysModelUsage(keys, days)` in `hooks/use-key-quota.ts` fans out one query per key via `useQueries` — Overview and Usage both aggregate from it.
-- **Zustand** stores in `lib/stores/`: `ui-store` (selected key id, invalidation counter), `alerts-store` (global threshold toggles + per-key fired tracking), `auth-store`.
+- **TanStack Query** wraps the proxy calls (`lib/zai-monitor.ts`, `lib/zai-client.ts`), 60s refresh on the dashboard. `useKeysModelUsage(keys, days)` in `hooks/use-key-quota.ts` fans out one query per key via `useQueries` — Overview and Usage both aggregate from it. All usage/quota numbers come from Z.ai's monitor endpoints; the app does not keep a local usage log.
+- **Zustand** stores in `lib/stores/`: `ui-store` (selected key id), `auth-store`.
 - **localStorage** is the source of truth for everything user-owned:
-  - `zai-tracker-keys` — API keys (`{ id, name, endpoint, key, monthlyBudgetCents, … }`)
-  - `zai:events:{keyId}` — append-only Playground call log (tokens, cost in cents)
-  - `zai-tracker-ui`, `zai-tracker-alerts`
-- Playground cost is computed locally from `lib/zai-pricing.ts` (hand-maintained table — approximate).
+  - `zai-tracker-keys` — API keys (`{ id, name, endpoint, key, … }`)
+  - `zai-tracker-ui`
+- Playground shows a per-call cost estimate computed from `lib/zai-pricing.ts` (hand-maintained table — approximate). It is not persisted.
 - Per-key chart/badge colors come from `lib/key-palette.ts` — the same key index always maps to the same hue across Overview and Usage.
 
 ### Routes (`app/(app)/`)

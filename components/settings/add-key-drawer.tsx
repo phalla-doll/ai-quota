@@ -72,7 +72,6 @@ export function AddKeyDrawer({
             name: name.trim(),
             apiKey: apiKey.trim(),
             endpoint,
-            monthlyBudgetCents: null,
         })
         toast.success(`Added “${name.trim()}”`)
         reset()

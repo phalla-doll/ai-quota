@@ -7,19 +7,8 @@ export type ApiKey = {
     endpoint: ZaiEndpoint
     key: string
     keyLast4: string
-    monthlyBudgetCents: number | null
     createdAt: string
     lastSyncedAt: string | null
-}
-
-export type UsageSummary = {
-    apiKeyId: string
-    monthlyBudgetCents: number
-    usedCents: number
-    requests: number
-    tokensInput: number
-    tokensOutput: number
-    capturedAt: string
 }
 
 export type DailyUsagePoint = {
@@ -33,20 +22,5 @@ export type ModelUsage = {
     model: string
     requests: number
     tokens: number
-    costCents: number
-}
-
-export type AlertThreshold = 50 | 75 | 90 | 95
-
-export type AlertConfig = {
-    threshold: AlertThreshold
-    enabled: boolean
-}
-
-export type UsageEvent = {
-    ts: string
-    model: string
-    tokensInput: number
-    tokensOutput: number
     costCents: number
 }

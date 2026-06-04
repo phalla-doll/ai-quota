@@ -3,7 +3,6 @@
 import * as React from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useUiStore } from "@/lib/stores/ui-store"
-import { clearEvents } from "@/lib/usage-log"
 import type { ApiKey, ZaiEndpoint } from "@/lib/types"
 
 const STORAGE_KEY = "zai-tracker-keys"
@@ -23,7 +22,6 @@ function loadKeys(): ApiKey[] {
                 endpoint: (k.endpoint as ZaiEndpoint) ?? "paas",
                 key: k.key,
                 keyLast4: k.keyLast4 ?? k.key.slice(-4),
-                monthlyBudgetCents: k.monthlyBudgetCents ?? null,
                 createdAt: k.createdAt ?? new Date().toISOString(),
                 lastSyncedAt: k.lastSyncedAt ?? null,
             }))
@@ -69,7 +67,6 @@ export type AddApiKeyInput = {
     name: string
     apiKey: string
     endpoint: ZaiEndpoint
-    monthlyBudgetCents: number | null
 }
 
 export function useAddApiKey() {
@@ -84,7 +81,6 @@ export function useAddApiKey() {
                 endpoint: input.endpoint,
                 key: input.apiKey,
                 keyLast4: input.apiKey.slice(-4),
-                monthlyBudgetCents: input.monthlyBudgetCents,
                 createdAt: new Date().toISOString(),
                 lastSyncedAt: null,
             }
@@ -103,22 +99,9 @@ export function useDeleteApiKey() {
         mutationFn: async (id: string) => {
             const keys = loadKeys().filter((k) => k.id !== id)
             saveKeys(keys)
-            clearEvents(id)
         },
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["api-keys"] })
-        },
-    })
-}
-
-export function useResetUsageLog() {
-    const bump = useUiStore((s) => s.bumpUsage)
-    return useMutation({
-        mutationFn: async (id: string) => {
-            clearEvents(id)
-        },
-        onSuccess: () => {
-            bump()
         },
     })
 }
