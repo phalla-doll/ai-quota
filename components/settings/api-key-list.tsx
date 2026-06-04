@@ -180,6 +180,7 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                     </DrawerHeader>
                     <DrawerFooter>
                         <Button
+                            size="xl"
                             variant="destructive"
                             onClick={onDelete}
                             disabled={del.isPending}
@@ -187,7 +188,7 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                             {del.isPending ? "Removing..." : "Remove"}
                         </Button>
                         <DrawerClose asChild>
-                            <Button variant="outline">Cancel</Button>
+                            <Button size="xl" variant="outline">Cancel</Button>
                         </DrawerClose>
                     </DrawerFooter>
                 </DrawerContent>
@@ -206,6 +207,7 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                     </DrawerHeader>
                     <DrawerFooter>
                         <Button
+                            size="xl"
                             variant="destructive"
                             onClick={onReset}
                             disabled={reset.isPending}
@@ -213,7 +215,7 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                             {reset.isPending ? "Clearing..." : "Reset"}
                         </Button>
                         <DrawerClose asChild>
-                            <Button variant="outline">Cancel</Button>
+                            <Button size="xl" variant="outline">Cancel</Button>
                         </DrawerClose>
                     </DrawerFooter>
                 </DrawerContent>

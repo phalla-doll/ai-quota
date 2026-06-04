@@ -110,7 +110,7 @@ export function AppHeader({
                         </div>
                         <DrawerFooter>
                             <DrawerClose asChild>
-                                <Button variant="outline">Close</Button>
+                                <Button size="xl" variant="outline">Close</Button>
                             </DrawerClose>
                         </DrawerFooter>
                     </DrawerContent>

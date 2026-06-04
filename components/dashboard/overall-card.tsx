@@ -38,7 +38,7 @@ export function OverallCard({
                     </div>
                 </div>
 
-                <Button asChild className="h-12 w-full rounded-full text-base">
+                <Button asChild size="xl" className="w-full">
                     <Link href="/usage">View usage</Link>
                 </Button>
 

@@ -18,7 +18,7 @@ export function NoApiKeyState() {
                         from the Playground to start tracking usage.
                     </p>
                 </div>
-                <Button asChild>
+                <Button asChild size="xl" className="w-full">
                     <Link href="/settings">Add API key</Link>
                 </Button>
             </CardContent>

@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useAddApiKey } from "@/hooks/use-api-keys"
 import { validateKey } from "@/lib/zai-client"
 import type { ZaiEndpoint } from "@/lib/types"
@@ -69,7 +70,7 @@ export function AddKeyDrawer() {
     return (
         <Drawer open={open} onOpenChange={setOpen}>
             <DrawerTrigger asChild>
-                <Button className="h-12 w-full gap-2 rounded-full text-base">
+                <Button size="xl" className="w-full">
                     <HugeiconsIcon icon={PlusSignIcon} size={18} />
                     Add API key
                 </Button>
@@ -84,7 +85,7 @@ export function AddKeyDrawer() {
                         </DrawerDescription>
                     </DrawerHeader>
 
-                    <div className="space-y-3 px-4">
+                    <div className="space-y-4 px-4">
                         <div className="space-y-1.5">
                             <Label htmlFor="key-name">Name</Label>
                             <Input
@@ -93,6 +94,7 @@ export function AddKeyDrawer() {
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 autoComplete="off"
+                                className="h-12 px-4 text-base md:text-base"
                             />
                         </div>
                         <div className="space-y-1.5">
@@ -105,24 +107,31 @@ export function AddKeyDrawer() {
                                 onChange={(e) => setApiKey(e.target.value)}
                                 autoComplete="off"
                                 inputMode="text"
+                                className="h-12 px-4 text-base md:text-base"
                             />
                         </div>
                         <div className="space-y-1.5">
                             <Label>Endpoint</Label>
-                            <div className="grid grid-cols-2 gap-2">
-                                <EndpointPill
+                            <RadioGroup
+                                value={endpoint}
+                                onValueChange={(v) =>
+                                    setEndpoint(v as ZaiEndpoint)
+                                }
+                                className="grid grid-cols-2 gap-2"
+                            >
+                                <EndpointOption
+                                    value="paas"
                                     label="Standard API"
                                     sub="/api/paas/v4"
                                     active={endpoint === "paas"}
-                                    onClick={() => setEndpoint("paas")}
                                 />
-                                <EndpointPill
+                                <EndpointOption
+                                    value="coding"
                                     label="Coding Plan"
                                     sub="/api/coding/paas/v4"
                                     active={endpoint === "coding"}
-                                    onClick={() => setEndpoint("coding")}
                                 />
-                            </div>
+                            </RadioGroup>
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="key-budget">
@@ -135,12 +144,13 @@ export function AddKeyDrawer() {
                                 placeholder="50.00"
                                 value={budget}
                                 onChange={(e) => setBudget(e.target.value)}
+                                className="h-12 px-4 text-base md:text-base"
                             />
                         </div>
                     </div>
 
                     <DrawerFooter>
-                        <Button type="submit" disabled={busy}>
+                        <Button size="xl" type="submit" disabled={busy}>
                             {validating
                                 ? "Validating..."
                                 : add.isPending
@@ -148,7 +158,7 @@ export function AddKeyDrawer() {
                                   : "Validate & save"}
                         </Button>
                         <DrawerClose asChild>
-                            <Button type="button" variant="outline">
+                            <Button size="xl" type="button" variant="outline">
                                 Cancel
                             </Button>
                         </DrawerClose>
@@ -159,32 +169,35 @@ export function AddKeyDrawer() {
     )
 }
 
-function EndpointPill({
+function EndpointOption({
+    value,
     label,
     sub,
     active,
-    onClick,
 }: {
+    value: ZaiEndpoint
     label: string
     sub: string
     active: boolean
-    onClick: () => void
 }) {
+    const id = `endpoint-${value}`
     return (
-        <button
-            type="button"
-            onClick={onClick}
+        <Label
+            htmlFor={id}
             className={cn(
-                "flex flex-col items-start rounded-lg border px-3 py-2 text-left transition-colors",
+                "flex cursor-pointer flex-col items-start gap-1 rounded-2xl border bg-transparent px-4 py-3 text-left font-normal transition-colors",
                 active
                     ? "border-primary bg-primary/5"
                     : "border-input hover:bg-muted/50"
             )}
         >
-            <span className="text-sm font-medium">{label}</span>
-            <span className="text-muted-foreground font-mono text-[10px]">
+            <span className="sr-only">
+                <RadioGroupItem id={id} value={value} />
+            </span>
+            <span className="text-sm font-medium leading-none">{label}</span>
+            <span className="text-muted-foreground font-mono text-[11px]">
                 {sub}
             </span>
-        </button>
+        </Label>
     )
 }
