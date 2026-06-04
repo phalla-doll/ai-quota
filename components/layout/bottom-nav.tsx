@@ -6,7 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import {
     DashboardSquare01Icon,
     ChartLineData01Icon,
-    AiBrain01Icon,
+    // AiBrain01Icon,
     ChatBotIcon,
     Settings01Icon,
 } from "@hugeicons/core-free-icons"
@@ -16,7 +16,7 @@ const items = [
     { href: "/", label: "Dashboard", icon: DashboardSquare01Icon },
     { href: "/usage", label: "Usage", icon: ChartLineData01Icon },
     { href: "/playground", label: "Playground", icon: ChatBotIcon },
-    { href: "/models", label: "Models", icon: AiBrain01Icon },
+    // { href: "/models", label: "Models", icon: AiBrain01Icon },
     { href: "/settings", label: "Settings", icon: Settings01Icon },
 ] as const
 
