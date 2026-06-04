@@ -6,16 +6,16 @@ import { Card, CardContent } from "@/components/ui/card"
 
 export function NoApiKeyState() {
     return (
-        <Card className="shadow-none py-0">
+        <Card className="py-0 shadow-none">
             <CardContent className="flex flex-col items-center gap-3 px-6 py-10 text-center">
-                <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-full">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <HugeiconsIcon icon={Key01Icon} size={24} />
                 </div>
                 <div>
                     <div className="font-semibold">No API keys yet</div>
-                    <p className="text-muted-foreground mt-1 text-sm">
-                        Add your Z.ai key in Settings, then send a request
-                        from the Playground to start tracking usage.
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Add your Z.ai key in Settings, then send a request from
+                        the Playground to start tracking usage.
                     </p>
                 </div>
                 <Button asChild size="xl" className="w-full">

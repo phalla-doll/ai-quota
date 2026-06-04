@@ -193,7 +193,7 @@ function EndpointOption({
             <span className="sr-only">
                 <RadioGroupItem id={id} value={value} />
             </span>
-            <span className="text-sm font-medium leading-none">{label}</span>
+            <span className="text-sm leading-none font-medium">{label}</span>
         </Label>
     )
 }

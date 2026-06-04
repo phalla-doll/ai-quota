@@ -21,20 +21,20 @@ export function StatCard({
         <Card
             className={cn(
                 "shadow-none",
-                accent === "primary" && "bg-primary/5 border-primary/20",
+                accent === "primary" && "border-primary/20 bg-primary/5",
                 accent === "muted" && "bg-muted/40",
                 className
             )}
         >
             <CardContent className="px-4 py-3">
-                <div className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+                <div className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                     {label}
                 </div>
                 <div className="mt-1 text-xl font-semibold tabular-nums">
                     {value}
                 </div>
                 {sub ? (
-                    <div className="text-muted-foreground mt-0.5 text-xs">
+                    <div className="mt-0.5 text-xs text-muted-foreground">
                         {sub}
                     </div>
                 ) : null}

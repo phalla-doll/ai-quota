@@ -2,10 +2,7 @@
 
 import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import {
-    ChevronDownIcon,
-    Tick02Icon,
-} from "@hugeicons/core-free-icons"
+import { ChevronDownIcon, Tick02Icon } from "@hugeicons/core-free-icons"
 import {
     Drawer,
     DrawerContent,
@@ -54,8 +51,8 @@ export function PickerDrawer({
                     type="button"
                     disabled={disabled}
                     className={cn(
-                        "border-input bg-background flex h-9 w-full items-center justify-between gap-2 rounded-md border px-3 text-left text-sm",
-                        "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
+                        "flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-left text-sm",
+                        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                         "disabled:cursor-not-allowed disabled:opacity-50"
                     )}
                 >
@@ -70,7 +67,7 @@ export function PickerDrawer({
                     <HugeiconsIcon
                         icon={ChevronDownIcon}
                         size={16}
-                        className="text-muted-foreground shrink-0"
+                        className="shrink-0 text-muted-foreground"
                     />
                 </button>
             </DrawerTrigger>
@@ -93,7 +90,7 @@ export function PickerDrawer({
                                     setOpen(false)
                                 }}
                                 className={cn(
-                                    "hover:bg-muted/50 flex w-full items-center justify-between gap-3 rounded-lg px-3 py-3 text-left text-sm transition-colors",
+                                    "flex w-full items-center justify-between gap-3 rounded-lg px-3 py-3 text-left text-sm transition-colors hover:bg-muted/50",
                                     active && "bg-muted/40"
                                 )}
                             >
@@ -107,7 +104,7 @@ export function PickerDrawer({
                                         {opt.label}
                                     </div>
                                     {opt.sub ? (
-                                        <div className="text-muted-foreground truncate text-xs">
+                                        <div className="truncate text-xs text-muted-foreground">
                                             {opt.sub}
                                         </div>
                                     ) : null}
@@ -116,7 +113,7 @@ export function PickerDrawer({
                                     <HugeiconsIcon
                                         icon={Tick02Icon}
                                         size={18}
-                                        className="text-primary shrink-0"
+                                        className="shrink-0 text-primary"
                                     />
                                 ) : null}
                             </button>

@@ -15,8 +15,8 @@ export function AlertThresholds() {
 
     if (!keys || keys.length === 0) {
         return (
-            <Card className="shadow-none py-0">
-                <CardContent className="text-muted-foreground px-5 py-6 text-center text-sm">
+            <Card className="py-0 shadow-none">
+                <CardContent className="px-5 py-6 text-center text-sm text-muted-foreground">
                     Add an API key to configure alerts.
                 </CardContent>
             </Card>
@@ -29,9 +29,9 @@ export function AlertThresholds() {
         enabled?.[t] ?? (t === 50 ? false : true)
 
     return (
-        <Card className="shadow-none py-0">
-            <CardContent className="divide-border/60 divide-y px-0 py-2">
-                <div className="text-muted-foreground px-5 pb-2 pt-1 text-xs">
+        <Card className="py-0 shadow-none">
+            <CardContent className="divide-y divide-border/60 px-0 py-2">
+                <div className="px-5 pt-1 pb-2 text-xs text-muted-foreground">
                     For <span className="font-medium">{selected.name}</span>
                 </div>
                 {ALL_THRESHOLDS.map((t) => (
@@ -41,7 +41,7 @@ export function AlertThresholds() {
                     >
                         <div>
                             <div className="font-medium">{t}% used</div>
-                            <div className="text-muted-foreground text-xs">
+                            <div className="text-xs text-muted-foreground">
                                 In-app toast when monthly usage crosses {t}%
                             </div>
                         </div>

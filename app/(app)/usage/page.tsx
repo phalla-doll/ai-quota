@@ -12,6 +12,7 @@ import { formatCompactNumber } from "@/lib/format"
 import type { DailyUsagePoint } from "@/lib/types"
 
 const rangeOptions = [
+    { value: "1", label: "Today" },
     { value: "7", label: "Last 7 days" },
     { value: "30", label: "Last 30 days" },
 ] as const
@@ -48,8 +49,7 @@ export default function UsagePage() {
         }
     }, [data])
 
-    const rangeLabel =
-        rangeOptions.find((r) => r.value === range)?.label ?? ""
+    const rangeLabel = rangeOptions.find((r) => r.value === range)?.label ?? ""
     const metricLabel = metric === "tokens" ? "Tokens" : "Requests"
 
     return (
@@ -63,15 +63,15 @@ export default function UsagePage() {
                         <Skeleton className="h-72 w-full rounded-xl" />
                     </>
                 ) : error || !data || !totals ? (
-                    <Card className="shadow-none py-0">
-                        <CardContent className="text-muted-foreground px-5 py-6 text-center text-sm">
-                            Couldn’t load usage. The selected key may not be
-                            on a Coding Plan.
+                    <Card className="py-0 shadow-none">
+                        <CardContent className="px-5 py-6 text-center text-sm text-muted-foreground">
+                            Couldn’t load usage. The selected key may not be on
+                            a Coding Plan.
                         </CardContent>
                     </Card>
                 ) : (
                     <>
-                        <Card className="shadow-none py-0">
+                        <Card className="py-0 shadow-none">
                             <CardContent className="space-y-5 px-5 py-5">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-base font-semibold">
@@ -91,13 +91,13 @@ export default function UsagePage() {
                                                 : totals.requests
                                         )}
                                     </div>
-                                    <div className="text-muted-foreground text-sm">
+                                    <div className="text-sm text-muted-foreground">
                                         {rangeLabel}
                                     </div>
                                 </div>
-                                <div className="bg-muted/40 grid grid-cols-2 divide-x rounded-xl">
+                                <div className="grid grid-cols-2 divide-x rounded-xl bg-muted/40">
                                     <div className="px-4 py-3 text-center">
-                                        <div className="text-muted-foreground text-xs">
+                                        <div className="text-xs text-muted-foreground">
                                             Tokens
                                         </div>
                                         <div className="mt-0.5 font-semibold tabular-nums">
@@ -105,7 +105,7 @@ export default function UsagePage() {
                                         </div>
                                     </div>
                                     <div className="px-4 py-3 text-center">
-                                        <div className="text-muted-foreground text-xs">
+                                        <div className="text-xs text-muted-foreground">
                                             Requests
                                         </div>
                                         <div className="mt-0.5 font-semibold tabular-nums">
@@ -118,7 +118,7 @@ export default function UsagePage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="shadow-none py-0">
+                        <Card className="py-0 shadow-none">
                             <CardContent className="px-5 py-5">
                                 <div className="mb-3 flex items-center justify-between">
                                     <h2 className="text-base font-semibold">

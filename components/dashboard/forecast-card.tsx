@@ -32,17 +32,17 @@ export function ForecastCard({
     const overBudget = projected > budgetCents
 
     return (
-        <Card className="shadow-none py-0">
+        <Card className="py-0 shadow-none">
             <CardContent className="px-5 py-5">
                 <div className="flex items-center justify-between">
                     <div>
-                        <div className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+                        <div className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                             Spending forecast
                         </div>
                         <div className="mt-1 text-2xl font-semibold tabular-nums">
                             {formatCurrency(projected)}
                         </div>
-                        <div className="text-muted-foreground mt-0.5 text-xs">
+                        <div className="mt-0.5 text-xs text-muted-foreground">
                             Projected for this month
                         </div>
                     </div>
@@ -56,7 +56,7 @@ export function ForecastCard({
                         <HugeiconsIcon icon={AnalyticsUpIcon} size={28} />
                     </div>
                 </div>
-                <div className="border-border/60 mt-3 flex justify-between border-t pt-3 text-xs tabular-nums">
+                <div className="mt-3 flex justify-between border-t border-border/60 pt-3 text-xs tabular-nums">
                     <div>
                         <div className="text-muted-foreground">Current</div>
                         <div className="font-medium">
@@ -74,7 +74,7 @@ export function ForecastCard({
                         <div
                             className={
                                 overBudget
-                                    ? "text-destructive font-medium"
+                                    ? "font-medium text-destructive"
                                     : "font-medium text-emerald-600 dark:text-emerald-400"
                             }
                         >

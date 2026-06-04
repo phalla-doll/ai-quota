@@ -45,8 +45,8 @@ export function ApiKeyList() {
 
     if (!keys || keys.length === 0) {
         return (
-            <Card className="shadow-none py-0">
-                <CardContent className="text-muted-foreground px-5 py-6 text-center text-sm">
+            <Card className="py-0 shadow-none">
+                <CardContent className="px-5 py-6 text-center text-sm text-muted-foreground">
                     No keys yet. Add your first one above.
                 </CardContent>
             </Card>
@@ -54,8 +54,8 @@ export function ApiKeyList() {
     }
 
     return (
-        <Card className="shadow-none py-0">
-            <CardContent className="divide-border/60 divide-y px-5 py-2">
+        <Card className="py-0 shadow-none">
+            <CardContent className="divide-y divide-border/60 px-5 py-2">
                 {keys.map((k) => (
                     <KeyRow key={k.id} apiKey={k} />
                 ))}
@@ -106,19 +106,17 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
 
     return (
         <div className="flex items-center gap-3 py-3">
-            <div className="bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-full">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <HugeiconsIcon icon={Key01Icon} size={18} />
             </div>
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                    <span className="truncate font-medium">
-                        {apiKey.name}
-                    </span>
-                    <span className="text-muted-foreground bg-muted rounded px-1.5 py-px text-[10px] uppercase">
+                    <span className="truncate font-medium">{apiKey.name}</span>
+                    <span className="rounded bg-muted px-1.5 py-px text-[10px] text-muted-foreground uppercase">
                         {apiKey.endpoint}
                     </span>
                 </div>
-                <div className="text-muted-foreground truncate font-mono text-xs">
+                <div className="truncate font-mono text-xs text-muted-foreground">
                     {revealed ? apiKey.key : `•••• ${apiKey.keyLast4}`}
                     {apiKey.monthlyBudgetCents
                         ? ` · ${formatCurrency(apiKey.monthlyBudgetCents)}/mo`
@@ -149,10 +147,7 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                         Copy key
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={onTest} disabled={testing}>
-                        <HugeiconsIcon
-                            icon={CheckmarkCircle01Icon}
-                            size={16}
-                        />
+                        <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} />
                         {testing ? "Testing..." : "Test key"}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -188,7 +183,9 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                             {del.isPending ? "Removing..." : "Remove"}
                         </Button>
                         <DrawerClose asChild>
-                            <Button size="xl" variant="outline">Cancel</Button>
+                            <Button size="xl" variant="outline">
+                                Cancel
+                            </Button>
                         </DrawerClose>
                     </DrawerFooter>
                 </DrawerContent>
@@ -215,7 +212,9 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                             {reset.isPending ? "Clearing..." : "Reset"}
                         </Button>
                         <DrawerClose asChild>
-                            <Button size="xl" variant="outline">Cancel</Button>
+                            <Button size="xl" variant="outline">
+                                Cancel
+                            </Button>
                         </DrawerClose>
                     </DrawerFooter>
                 </DrawerContent>

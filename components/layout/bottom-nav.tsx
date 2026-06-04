@@ -25,7 +25,7 @@ export function BottomNav() {
     return (
         <nav
             className={cn(
-                "bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur",
+                "fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80",
                 "pb-[max(env(safe-area-inset-bottom),0.5rem)]"
             )}
         >

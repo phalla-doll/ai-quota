@@ -16,8 +16,7 @@ export const useUiStore = create<UiState>()(
             selectedApiKeyId: null,
             setSelectedApiKeyId: (id) => set({ selectedApiKeyId: id }),
             usageVersion: 0,
-            bumpUsage: () =>
-                set((s) => ({ usageVersion: s.usageVersion + 1 })),
+            bumpUsage: () => set((s) => ({ usageVersion: s.usageVersion + 1 })),
         }),
         {
             name: "zai-tracker-ui",

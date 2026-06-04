@@ -20,11 +20,11 @@ export function QuotaProgress({ usedCents, budgetCents }: QuotaProgressProps) {
               : "text-foreground"
 
     return (
-        <Card className="shadow-none py-0">
+        <Card className="py-0 shadow-none">
             <CardContent className="space-y-3 px-4 py-4">
                 <div className="flex items-end justify-between gap-2">
                     <div>
-                        <div className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+                        <div className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                             Quota
                         </div>
                         <div
@@ -44,7 +44,9 @@ export function QuotaProgress({ usedCents, budgetCents }: QuotaProgressProps) {
                             </span>
                         </div>
                         <div className="text-muted-foreground">
-                            {formatCurrency(Math.max(budgetCents - usedCents, 0))}{" "}
+                            {formatCurrency(
+                                Math.max(budgetCents - usedCents, 0)
+                            )}{" "}
                             remaining
                         </div>
                     </div>

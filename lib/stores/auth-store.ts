@@ -17,8 +17,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     jwt: null,
     userId: null,
     status: "loading",
-    setSession: (jwt, userId) =>
-        set({ jwt, userId, status: "authenticated" }),
+    setSession: (jwt, userId) => set({ jwt, userId, status: "authenticated" }),
     clear: () => set({ jwt: null, userId: null, status: "unauthenticated" }),
     setStatus: (status) => set({ status }),
 }))

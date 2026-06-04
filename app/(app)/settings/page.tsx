@@ -38,11 +38,11 @@ export default function SettingsPage() {
                 </SettingsSection>
 
                 <SettingsSection title="Appearance">
-                    <Card className="shadow-none py-0">
+                    <Card className="py-0 shadow-none">
                         <CardContent className="flex items-center justify-between px-5 py-5">
                             <div>
                                 <div className="font-medium">Dark mode</div>
-                                <div className="text-muted-foreground text-xs">
+                                <div className="text-xs text-muted-foreground">
                                     Follows your device by default
                                 </div>
                             </div>
@@ -58,7 +58,7 @@ export default function SettingsPage() {
                 </SettingsSection>
 
                 <SettingsSection title="Account">
-                    <Card className="shadow-none py-0">
+                    <Card className="py-0 shadow-none">
                         <CardContent className="space-y-2 px-5 py-5 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">

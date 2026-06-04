@@ -51,8 +51,8 @@ export function ModelBreakdownCard({ apiKey }: { apiKey: ApiKey }) {
 
     if (models.length === 0 || total === 0) {
         return (
-            <Card className="shadow-none py-0">
-                <CardContent className="text-muted-foreground px-5 py-6 text-center text-sm">
+            <Card className="py-0 shadow-none">
+                <CardContent className="px-5 py-6 text-center text-sm text-muted-foreground">
                     No model usage recorded{" "}
                     {range === 1 ? "today" : `in the last ${range} days`}.
                 </CardContent>
@@ -67,7 +67,7 @@ export function ModelBreakdownCard({ apiKey }: { apiKey: ApiKey }) {
     }))
 
     return (
-        <Card className="shadow-none py-0">
+        <Card className="py-0 shadow-none">
             <CardContent className="px-5 py-5">
                 <div className="flex items-center justify-between">
                     <h2 className="text-base font-semibold">Tokens by model</h2>
@@ -119,7 +119,7 @@ export function ModelBreakdownCard({ apiKey }: { apiKey: ApiKey }) {
                         </PieChart>
                     </ResponsiveContainer>
                     <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                        <div className="text-muted-foreground text-xs">
+                        <div className="text-xs text-muted-foreground">
                             Total tokens
                         </div>
                         <div className="text-xl font-bold tabular-nums">
@@ -135,7 +135,7 @@ export function ModelBreakdownCard({ apiKey }: { apiKey: ApiKey }) {
                             <Link
                                 key={m.modelName}
                                 href="/models"
-                                className="hover:bg-muted/40 -mx-2 flex items-center justify-between gap-3 rounded-lg px-2 py-3 transition-colors"
+                                className="-mx-2 flex items-center justify-between gap-3 rounded-lg px-2 py-3 transition-colors hover:bg-muted/40"
                             >
                                 <div className="flex min-w-0 items-center gap-3">
                                     <span
@@ -156,11 +156,9 @@ export function ModelBreakdownCard({ apiKey }: { apiKey: ApiKey }) {
                                 <div className="flex items-center gap-2">
                                     <div className="text-right">
                                         <div className="text-sm font-semibold tabular-nums">
-                                            {formatCompactNumber(
-                                                m.totalTokens
-                                            )}
+                                            {formatCompactNumber(m.totalTokens)}
                                         </div>
-                                        <div className="text-muted-foreground text-xs tabular-nums">
+                                        <div className="text-xs text-muted-foreground tabular-nums">
                                             {share}%
                                         </div>
                                     </div>

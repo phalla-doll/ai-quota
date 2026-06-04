@@ -12,7 +12,7 @@ export function SettingsSection({
             <div className="px-1">
                 <h2 className="text-sm font-semibold">{title}</h2>
                 {description ? (
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-xs text-muted-foreground">
                         {description}
                     </p>
                 ) : null}

@@ -10,6 +10,7 @@ import { useKeyModelUsage } from "@/hooks/use-key-quota"
 import { formatCompactNumber } from "@/lib/format"
 
 const ranges = [
+    { value: "1", label: "Today" },
     { value: "7", label: "Last 7 days" },
     { value: "30", label: "Last 30 days" },
 ] as const
@@ -39,15 +40,15 @@ export default function ModelsPage() {
                         <Skeleton className="h-64 w-full rounded-xl" />
                     </>
                 ) : error || !data ? (
-                    <Card className="shadow-none py-0">
-                        <CardContent className="text-muted-foreground px-5 py-6 text-center text-sm">
-                            Couldn’t load model usage. The selected key may
-                            not be on a Coding Plan.
+                    <Card className="py-0 shadow-none">
+                        <CardContent className="px-5 py-6 text-center text-sm text-muted-foreground">
+                            Couldn’t load model usage. The selected key may not
+                            be on a Coding Plan.
                         </CardContent>
                     </Card>
                 ) : (
                     <>
-                        <Card className="shadow-none py-0">
+                        <Card className="py-0 shadow-none">
                             <CardContent className="space-y-5 px-5 py-5">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-base font-semibold">
@@ -65,14 +66,14 @@ export default function ModelsPage() {
                                             data.totalUsage.totalTokensUsage
                                         )}
                                     </div>
-                                    <div className="text-muted-foreground text-sm">
+                                    <div className="text-sm text-muted-foreground">
                                         {data.modelSummaryList.length} models
                                         active
                                     </div>
                                 </div>
-                                <div className="bg-muted/40 grid grid-cols-2 divide-x rounded-xl">
+                                <div className="grid grid-cols-2 divide-x rounded-xl bg-muted/40">
                                     <div className="px-4 py-3 text-center">
-                                        <div className="text-muted-foreground text-xs">
+                                        <div className="text-xs text-muted-foreground">
                                             Requests
                                         </div>
                                         <div className="mt-0.5 font-semibold tabular-nums">
@@ -83,7 +84,7 @@ export default function ModelsPage() {
                                         </div>
                                     </div>
                                     <div className="px-4 py-3 text-center">
-                                        <div className="text-muted-foreground text-xs">
+                                        <div className="text-xs text-muted-foreground">
                                             Models
                                         </div>
                                         <div className="mt-0.5 font-semibold tabular-nums">
@@ -94,13 +95,12 @@ export default function ModelsPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="shadow-none py-0">
-                            <CardContent className="divide-border/60 divide-y px-5 py-2">
+                        <Card className="py-0 shadow-none">
+                            <CardContent className="divide-y divide-border/60 px-5 py-2">
                                 {data.modelSummaryList
                                     .slice()
                                     .sort(
-                                        (a, b) =>
-                                            b.totalTokens - a.totalTokens
+                                        (a, b) => b.totalTokens - a.totalTokens
                                     )
                                     .map((m, i) => {
                                         const total =
@@ -140,7 +140,7 @@ export default function ModelsPage() {
                                                             m.totalTokens
                                                         )}
                                                     </div>
-                                                    <div className="text-muted-foreground text-xs tabular-nums">
+                                                    <div className="text-xs text-muted-foreground tabular-nums">
                                                         {share}%
                                                     </div>
                                                 </div>

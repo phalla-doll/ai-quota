@@ -59,7 +59,7 @@ export default function RootLayout({
                 geist.variable
             )}
         >
-            <body className="bg-background min-h-svh overscroll-none">
+            <body className="min-h-svh overscroll-none bg-background">
                 <Script
                     src="https://telegram.org/js/telegram-web-app.js"
                     strategy="beforeInteractive"

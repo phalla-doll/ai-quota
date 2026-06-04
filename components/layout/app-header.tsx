@@ -50,7 +50,7 @@ export function AppHeader({
                     {title}
                 </h1>
                 {subtitle ? (
-                    <p className="text-muted-foreground mt-0.5 truncate text-sm">
+                    <p className="mt-0.5 truncate text-sm text-muted-foreground">
                         {subtitle}
                     </p>
                 ) : null}
@@ -99,12 +99,12 @@ export function AppHeader({
                                             <div className="font-medium">
                                                 {k.name}
                                             </div>
-                                            <div className="text-muted-foreground text-xs">
+                                            <div className="text-xs text-muted-foreground">
                                                 •••• {k.keyLast4}
                                             </div>
                                         </div>
                                         {active ? (
-                                            <span className="bg-primary h-2 w-2 rounded-full" />
+                                            <span className="h-2 w-2 rounded-full bg-primary" />
                                         ) : null}
                                     </button>
                                 )
@@ -115,7 +115,7 @@ export function AppHeader({
                                     setOpen(false)
                                     setAddOpen(true)
                                 }}
-                                className="border-border hover:bg-muted mt-1 flex items-center gap-2 rounded-md border border-dashed px-3 py-3 text-left text-sm font-medium transition-colors"
+                                className="mt-1 flex items-center gap-2 rounded-md border border-dashed border-border px-3 py-3 text-left text-sm font-medium transition-colors hover:bg-muted"
                             >
                                 <HugeiconsIcon icon={PlusSignIcon} size={16} />
                                 Add API key
@@ -123,7 +123,9 @@ export function AppHeader({
                         </div>
                         <DrawerFooter>
                             <DrawerClose asChild>
-                                <Button size="xl" variant="outline">Close</Button>
+                                <Button size="xl" variant="outline">
+                                    Close
+                                </Button>
                             </DrawerClose>
                         </DrawerFooter>
                     </DrawerContent>

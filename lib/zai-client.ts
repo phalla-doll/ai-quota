@@ -33,7 +33,10 @@ export async function validateKey(
         const text = await res.text()
         return { ok: false, error: `HTTP ${res.status}: ${text.slice(0, 200)}` }
     } catch (e) {
-        return { ok: false, error: e instanceof Error ? e.message : "network error" }
+        return {
+            ok: false,
+            error: e instanceof Error ? e.message : "network error",
+        }
     }
 }
 

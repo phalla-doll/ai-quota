@@ -25,12 +25,12 @@ export function QuotaCard({ apiKey }: { apiKey: ApiKey }) {
 
     if (quota.error) {
         return (
-            <Card className="shadow-none py-0">
+            <Card className="py-0 shadow-none">
                 <CardContent className="space-y-2 px-5 py-5 text-sm">
-                    <div className="text-destructive font-medium">
+                    <div className="font-medium text-destructive">
                         Couldn’t read quota
                     </div>
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-xs text-muted-foreground">
                         {quota.error instanceof Error
                             ? quota.error.message
                             : "unknown"}
@@ -53,16 +53,16 @@ export function QuotaCard({ apiKey }: { apiKey: ApiKey }) {
     const totalCalls30d = month.data?.totalUsage?.totalModelCallCount ?? 0
 
     return (
-        <Card className="shadow-none py-0">
+        <Card className="py-0 shadow-none">
             <CardContent className="space-y-5 px-5 py-5">
                 <div className="space-y-1 text-center">
-                    <div className="text-muted-foreground text-sm">
+                    <div className="text-sm text-muted-foreground">
                         {labelFor(primary)}
                     </div>
                     <div className="text-4xl font-bold tracking-tight tabular-nums">
                         {primary.percentage}%
                     </div>
-                    <div className="text-muted-foreground text-xs">
+                    <div className="text-xs text-muted-foreground">
                         Plan{" "}
                         <span className="font-medium uppercase">
                             {quota.data.level}
@@ -96,9 +96,9 @@ export function QuotaCard({ apiKey }: { apiKey: ApiKey }) {
                     </div>
                 )}
 
-                <div className="bg-muted/40 grid grid-cols-2 divide-x rounded-xl">
+                <div className="grid grid-cols-2 divide-x rounded-xl bg-muted/40">
                     <div className="px-4 py-3 text-center">
-                        <div className="text-muted-foreground text-xs">
+                        <div className="text-xs text-muted-foreground">
                             Tokens · 30d
                         </div>
                         <div className="mt-0.5 font-semibold tabular-nums">
@@ -106,7 +106,7 @@ export function QuotaCard({ apiKey }: { apiKey: ApiKey }) {
                         </div>
                     </div>
                     <div className="px-4 py-3 text-center">
-                        <div className="text-muted-foreground text-xs">
+                        <div className="text-xs text-muted-foreground">
                             Requests · 30d
                         </div>
                         <div className="mt-0.5 font-semibold tabular-nums">

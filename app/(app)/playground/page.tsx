@@ -118,16 +118,11 @@ export default function PlaygroundPage() {
                     <NoApiKeyState />
                 ) : (
                     <>
-                        <Card className="shadow-none py-0">
+                        <Card className="py-0 shadow-none">
                             <CardContent className="space-y-3 px-5 py-5">
-                                <form
-                                    onSubmit={onSubmit}
-                                    className="space-y-3"
-                                >
+                                <form onSubmit={onSubmit} className="space-y-3">
                                     <div className="space-y-1.5">
-                                        <Label htmlFor="pg-model">
-                                            Model
-                                        </Label>
+                                        <Label htmlFor="pg-model">Model</Label>
                                         <PickerDrawer
                                             triggerId="pg-model"
                                             title="Pick a model"
@@ -155,7 +150,7 @@ export default function PlaygroundPage() {
                                                 setSystemPrompt(e.target.value)
                                             }
                                             rows={2}
-                                            className="border-input bg-background focus-visible:ring-ring w-full resize-y rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                                            className="w-full resize-y rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                                             placeholder="You are a helpful assistant."
                                         />
                                     </div>
@@ -169,7 +164,7 @@ export default function PlaygroundPage() {
                                                 setUserPrompt(e.target.value)
                                             }
                                             rows={4}
-                                            className="border-input bg-background focus-visible:ring-ring w-full resize-y rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                                            className="w-full resize-y rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                                         />
                                     </div>
 
@@ -191,12 +186,12 @@ export default function PlaygroundPage() {
                         </Card>
 
                         {(streaming || send.isPending) && (
-                            <Card className="shadow-none py-0">
+                            <Card className="py-0 shadow-none">
                                 <CardContent className="space-y-2 px-5 py-5">
-                                    <div className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+                                    <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                         Response
                                     </div>
-                                    <pre className="font-sans whitespace-pre-wrap text-sm leading-relaxed">
+                                    <pre className="font-sans text-sm leading-relaxed whitespace-pre-wrap">
                                         {streaming || "…"}
                                     </pre>
                                 </CardContent>
@@ -204,15 +199,12 @@ export default function PlaygroundPage() {
                         )}
 
                         {lastResult && (
-                            <Card className="shadow-none py-0">
+                            <Card className="py-0 shadow-none">
                                 <CardContent className="space-y-2 px-5 py-5 text-sm">
-                                    <div className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+                                    <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                         Last call
                                     </div>
-                                    <Row
-                                        k="Model"
-                                        v={lastResult.model}
-                                    />
+                                    <Row k="Model" v={lastResult.model} />
                                     <Row
                                         k="Prompt tokens"
                                         v={formatNumber(lastResult.tokensIn)}
@@ -223,9 +215,7 @@ export default function PlaygroundPage() {
                                     />
                                     <Row
                                         k="Cost"
-                                        v={formatCurrency(
-                                            lastResult.costCents
-                                        )}
+                                        v={formatCurrency(lastResult.costCents)}
                                     />
                                 </CardContent>
                             </Card>
