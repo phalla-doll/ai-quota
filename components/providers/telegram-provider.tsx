@@ -3,6 +3,8 @@
 import * as React from "react"
 import { useTheme } from "next-themes"
 
+const THEME_STORAGE_KEY = "theme"
+
 type TelegramUser = {
     id: number
     firstName: string
@@ -94,7 +96,19 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
                         ? "dark"
                         : "light"
 
-                setTheme(tgColorScheme)
+                // Only seed from Telegram if the user has never picked a theme.
+                // Otherwise this would clobber their saved choice every launch
+                // and make the dark-mode toggle appear broken in Telegram.
+                let hasStoredPreference = false
+                try {
+                    hasStoredPreference =
+                        window.localStorage.getItem(THEME_STORAGE_KEY) !== null
+                } catch {
+                    hasStoredPreference = false
+                }
+                if (!hasStoredPreference) {
+                    setTheme(tgColorScheme)
+                }
 
                 setValue({
                     ready: true,
