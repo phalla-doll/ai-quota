@@ -78,7 +78,7 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                                         <Skeleton className="h-3 w-8 rounded-md" />
                                     </div>
                                 </div>
-                                <Skeleton className="h-1.5 w-full rounded-full" />
+                                <Skeleton className="h-1 w-full rounded-full" />
                             </div>
                         ))}
                     </div>
@@ -163,8 +163,10 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
 
                 <div className="mt-2 divide-y">
                     {perKey.map((p) => {
-                        const share =
-                            total > 0 ? Math.round((p.total / total) * 100) : 0
+                        const rawShare = total > 0 ? (p.total / total) * 100 : 0
+                        const share = Math.round(rawShare)
+                        const shareLabel =
+                            p.total > 0 && rawShare < 1 ? "<1%" : `${share}%`
                         return (
                             <div
                                 key={p.key.id}
@@ -181,17 +183,17 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                                         </span>
                                     </div>
                                     <div className="flex items-baseline gap-2">
+                                        <span className="text-sm text-muted-foreground tabular-nums">
+                                            {p.errored ? "n/a" : shareLabel}
+                                        </span>
                                         <span className="text-sm font-semibold tabular-nums">
                                             {p.errored
                                                 ? "—"
                                                 : formatCompactNumber(p.total)}
                                         </span>
-                                        <span className="text-xs text-muted-foreground tabular-nums">
-                                            {p.errored ? "n/a" : `${share}%`}
-                                        </span>
                                     </div>
                                 </div>
-                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                                <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
                                     <div
                                         className="h-full rounded-full"
                                         style={{
