@@ -32,8 +32,8 @@ export default function DashboardPage() {
             <div className="space-y-4 px-4 pt-3">
                 {keysLoading ? (
                     <>
-                        <Skeleton className="h-56 w-full rounded-xl" />
-                        <Skeleton className="h-72 w-full rounded-xl" />
+                        <Skeleton className="h-56 w-full rounded-2xl" />
+                        <Skeleton className="h-[27rem] w-full rounded-2xl" />
                     </>
                 ) : !hasKeys || !selected ? (
                     <NoApiKeyState />

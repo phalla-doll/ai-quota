@@ -33,7 +33,58 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
     const isLoading = results.some((r) => r.isLoading)
 
     if (isLoading) {
-        return <Skeleton className="h-72 w-full rounded-xl" />
+        return (
+            <Card className="py-0 shadow-none">
+                <CardContent className="px-5 py-5">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-base font-semibold">
+                            Tokens by key
+                        </h2>
+                        <RangePicker range={range} setRange={setRange} />
+                    </div>
+
+                    <div className="relative mx-auto mt-4 h-52 w-52">
+                        <div className="absolute inset-0 rounded-full bg-muted/60" />
+                        <div className="absolute inset-[14%] rounded-full bg-background" />
+                        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1">
+                            <div className="text-xs text-muted-foreground">
+                                Total tokens
+                            </div>
+                            <Skeleton className="h-5 w-16 rounded-md" />
+                        </div>
+                    </div>
+
+                    <div className="mt-2 divide-y">
+                        {keys.map((k, i) => (
+                            <div
+                                key={k.id}
+                                className="-mx-2 flex flex-col gap-2 rounded-lg px-2 py-3"
+                            >
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex min-w-0 items-center gap-2">
+                                        <span
+                                            className="h-2.5 w-2.5 shrink-0 rounded-full"
+                                            style={{
+                                                backgroundColor:
+                                                    palette[i % palette.length],
+                                            }}
+                                        />
+                                        <span className="truncate text-sm font-medium">
+                                            {k.name}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-1">
+                                        <Skeleton className="h-4 w-10 rounded-md" />
+                                        <Skeleton className="h-3 w-8 rounded-md" />
+                                    </div>
+                                </div>
+                                <Skeleton className="h-1.5 w-full rounded-full" />
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+        )
     }
 
     const perKey = keys.map((k, i) => ({

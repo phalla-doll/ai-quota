@@ -20,7 +20,44 @@ export function QuotaCard({ apiKey }: { apiKey: ApiKey }) {
     const month = useKeyModelUsage(apiKey, 30)
 
     if (quota.isLoading) {
-        return <Skeleton className="h-56 w-full rounded-xl" />
+        return (
+            <Card className="py-0 shadow-none">
+                <CardContent className="space-y-5 px-5 py-5">
+                    <div className="space-y-1 text-center">
+                        <div className="text-sm text-muted-foreground">
+                            Quota remaining
+                        </div>
+                        <div className="flex justify-center">
+                            <Skeleton className="h-10 w-24 rounded-md" />
+                        </div>
+                        <div className="flex justify-center pt-1">
+                            <Skeleton className="h-3 w-40 rounded-md" />
+                        </div>
+                    </div>
+
+                    <Skeleton className="h-2 w-full rounded-full" />
+
+                    <div className="grid grid-cols-2 divide-x rounded-xl bg-muted/40">
+                        <div className="px-4 py-3 text-center">
+                            <div className="text-xs text-muted-foreground">
+                                Tokens · 30d
+                            </div>
+                            <div className="mt-1 flex justify-center">
+                                <Skeleton className="h-4 w-12 rounded-md" />
+                            </div>
+                        </div>
+                        <div className="px-4 py-3 text-center">
+                            <div className="text-xs text-muted-foreground">
+                                Requests · 30d
+                            </div>
+                            <div className="mt-1 flex justify-center">
+                                <Skeleton className="h-4 w-12 rounded-md" />
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        )
     }
 
     if (quota.error) {
