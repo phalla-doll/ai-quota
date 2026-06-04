@@ -23,8 +23,27 @@ import { validateKey } from "@/lib/zai-client"
 import type { ZaiEndpoint } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-export function AddKeyDrawer() {
-    const [open, setOpen] = React.useState(false)
+type AddKeyDrawerProps = {
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
+    showTrigger?: boolean
+}
+
+export function AddKeyDrawer({
+    open: openProp,
+    onOpenChange,
+    showTrigger = true,
+}: AddKeyDrawerProps = {}) {
+    const [internalOpen, setInternalOpen] = React.useState(false)
+    const isControlled = openProp !== undefined
+    const open = isControlled ? openProp : internalOpen
+    const setOpen = React.useCallback(
+        (next: boolean) => {
+            if (!isControlled) setInternalOpen(next)
+            onOpenChange?.(next)
+        },
+        [isControlled, onOpenChange]
+    )
     const [name, setName] = React.useState("")
     const [apiKey, setApiKey] = React.useState("")
     const [budget, setBudget] = React.useState("")
@@ -69,12 +88,14 @@ export function AddKeyDrawer() {
 
     return (
         <Drawer open={open} onOpenChange={setOpen}>
-            <DrawerTrigger asChild>
-                <Button size="xl" className="w-full">
-                    <HugeiconsIcon icon={PlusSignIcon} size={18} />
-                    Add API key
-                </Button>
-            </DrawerTrigger>
+            {showTrigger ? (
+                <DrawerTrigger asChild>
+                    <Button size="xl" className="w-full">
+                        <HugeiconsIcon icon={PlusSignIcon} size={18} />
+                        Add API key
+                    </Button>
+                </DrawerTrigger>
+            ) : null}
             <DrawerContent>
                 <form onSubmit={onSubmit}>
                     <DrawerHeader>

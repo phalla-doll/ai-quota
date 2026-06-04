@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { ChevronDownIcon } from "@hugeicons/core-free-icons"
+import { ChevronDownIcon, PlusSignIcon } from "@hugeicons/core-free-icons"
+import { AddKeyDrawer } from "@/components/settings/add-key-drawer"
 import {
     Drawer,
     DrawerContent,
@@ -33,6 +34,7 @@ export function AppHeader({
     const selected = useSelectedApiKey()
     const setSelected = useUiStore((s) => s.setSelectedApiKeyId)
     const [open, setOpen] = React.useState(false)
+    const [addOpen, setAddOpen] = React.useState(false)
 
     const showSwitcher = showKeySwitcher && keys && keys.length > 0
 
@@ -107,6 +109,17 @@ export function AppHeader({
                                     </button>
                                 )
                             })}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setOpen(false)
+                                    setAddOpen(true)
+                                }}
+                                className="border-border hover:bg-muted mt-1 flex items-center gap-2 rounded-md border border-dashed px-3 py-3 text-left text-sm font-medium transition-colors"
+                            >
+                                <HugeiconsIcon icon={PlusSignIcon} size={16} />
+                                Add API key
+                            </button>
                         </div>
                         <DrawerFooter>
                             <DrawerClose asChild>
@@ -116,6 +129,11 @@ export function AppHeader({
                     </DrawerContent>
                 </Drawer>
             ) : null}
+            <AddKeyDrawer
+                open={addOpen}
+                onOpenChange={setAddOpen}
+                showTrigger={false}
+            />
         </div>
     )
 }
