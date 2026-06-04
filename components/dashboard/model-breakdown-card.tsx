@@ -51,7 +51,7 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                 <CardContent className="space-y-5 px-5 py-5">
                     <div className="flex items-center justify-between">
                         <h2 className="text-base font-semibold">
-                            Tokens by model
+                            Tokens by key
                         </h2>
                         <RangePicker range={range} setRange={setRange} />
                     </div>
@@ -76,7 +76,7 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
         <Card className="py-0 shadow-none">
             <CardContent className="px-5 py-5">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-base font-semibold">Tokens by model</h2>
+                    <h2 className="text-base font-semibold">Tokens by key</h2>
                     <RangePicker range={range} setRange={setRange} />
                 </div>
 
