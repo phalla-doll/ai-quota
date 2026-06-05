@@ -40,6 +40,31 @@ export async function validateKey(
     }
 }
 
+export const WARM_UP_MODEL = "glm-4.5-air"
+
+export async function warmUpKey(
+    opts: ClientOpts,
+    model: string = WARM_UP_MODEL
+): Promise<void> {
+    const res = await fetch(`${PROXY_BASE}/chat/completions`, {
+        method: "POST",
+        headers: {
+            ...authHeaders(opts),
+            "content-type": "application/json",
+        },
+        body: JSON.stringify({
+            model,
+            messages: [{ role: "user", content: "hi" }],
+            max_tokens: 1,
+            stream: false,
+        }),
+    })
+    if (!res.ok) {
+        const text = await res.text().catch(() => "")
+        throw new Error(`HTTP ${res.status}: ${text.slice(0, 160)}`)
+    }
+}
+
 export type ChatMessage = {
     role: "system" | "user" | "assistant"
     content: string

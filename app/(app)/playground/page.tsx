@@ -8,12 +8,14 @@ import {
     Sent02Icon,
     ChevronDownIcon,
     Delete02Icon,
+    FlashIcon,
 } from "@hugeicons/core-free-icons"
 import { AppHeader } from "@/components/layout/app-header"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PickerDrawer } from "@/components/ui/picker-drawer"
 import { NoApiKeyState } from "@/components/dashboard/empty-state"
+import { WarmUpDrawer } from "@/components/playground/warm-up-drawer"
 import { useApiKeys, useSelectedApiKey } from "@/hooks/use-api-keys"
 import { useChatCompletion } from "@/hooks/use-chat-completion"
 import { useQuery } from "@tanstack/react-query"
@@ -67,6 +69,7 @@ export default function PlaygroundPage() {
     const [turns, setTurns] = React.useState<ChatTurn[]>([])
     const [streaming, setStreaming] = React.useState("")
     const [pickerOpen, setPickerOpen] = React.useState(false)
+    const [warmUpOpen, setWarmUpOpen] = React.useState(false)
     const bottomRef = React.useRef<HTMLDivElement | null>(null)
     const taRef = React.useRef<HTMLTextAreaElement | null>(null)
 
@@ -181,16 +184,27 @@ export default function PlaygroundPage() {
                             </span>
                             <HugeiconsIcon icon={ChevronDownIcon} size={14} />
                         </button>
-                        <button
-                            type="button"
-                            onClick={clearChat}
-                            disabled={turns.length === 0 || send.isPending}
-                            className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
-                            aria-label="Clear chat"
-                        >
-                            <HugeiconsIcon icon={Delete02Icon} size={14} />
-                            Clear
-                        </button>
+                        <div className="flex items-center gap-1">
+                            <button
+                                type="button"
+                                onClick={() => setWarmUpOpen(true)}
+                                className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                                aria-label="Warm up keys"
+                            >
+                                <HugeiconsIcon icon={FlashIcon} size={14} />
+                                Warm up
+                            </button>
+                            <button
+                                type="button"
+                                onClick={clearChat}
+                                disabled={turns.length === 0 || send.isPending}
+                                className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
+                                aria-label="Clear chat"
+                            >
+                                <HugeiconsIcon icon={Delete02Icon} size={14} />
+                                Clear
+                            </button>
+                        </div>
                         <PickerDrawer
                             value={model}
                             options={(models ?? []).map((m) => ({
@@ -203,6 +217,11 @@ export default function PlaygroundPage() {
                             open={pickerOpen}
                             onOpenChange={setPickerOpen}
                             hideTrigger
+                        />
+                        <WarmUpDrawer
+                            keys={keys ?? []}
+                            open={warmUpOpen}
+                            onOpenChange={setWarmUpOpen}
                         />
                     </div>
 
