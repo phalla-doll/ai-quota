@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { PopNumber } from "@/components/ui/pop-number"
 import { formatCompactNumber } from "@/lib/format"
 import { useKeysModelUsage } from "@/hooks/use-key-quota"
 import { keyPalette } from "@/lib/key-palette"
@@ -155,9 +156,10 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                         <div className="text-xs text-muted-foreground">
                             Total tokens
                         </div>
-                        <div className="text-xl font-bold tabular-nums">
-                            {formatCompactNumber(total)}
-                        </div>
+                        <PopNumber
+                            value={formatCompactNumber(total)}
+                            className="text-xl font-bold tabular-nums"
+                        />
                     </div>
                 </div>
 
@@ -183,14 +185,28 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                                         </span>
                                     </div>
                                     <div className="flex items-baseline gap-2">
-                                        <span className="text-sm text-muted-foreground tabular-nums">
-                                            {p.errored ? "n/a" : shareLabel}
-                                        </span>
-                                        <span className="text-sm font-semibold tabular-nums">
-                                            {p.errored
-                                                ? "—"
-                                                : formatCompactNumber(p.total)}
-                                        </span>
+                                        {p.errored ? (
+                                            <span className="text-sm text-muted-foreground tabular-nums">
+                                                n/a
+                                            </span>
+                                        ) : (
+                                            <PopNumber
+                                                value={shareLabel}
+                                                className="text-sm text-muted-foreground tabular-nums"
+                                            />
+                                        )}
+                                        {p.errored ? (
+                                            <span className="text-sm font-semibold tabular-nums">
+                                                —
+                                            </span>
+                                        ) : (
+                                            <PopNumber
+                                                value={formatCompactNumber(
+                                                    p.total
+                                                )}
+                                                className="text-sm font-semibold tabular-nums"
+                                            />
+                                        )}
                                     </div>
                                 </div>
                                 <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
