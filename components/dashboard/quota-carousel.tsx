@@ -2,13 +2,21 @@
 
 import * as React from "react"
 import useEmblaCarousel from "embla-carousel-react"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { ArrowLeft02Icon, ArrowRight02Icon } from "@hugeicons/core-free-icons"
 import { QuotaCard } from "@/components/dashboard/quota-card"
 import { useUiStore } from "@/lib/stores/ui-store"
 import { keyPalette } from "@/lib/key-palette"
 import { cn } from "@/lib/utils"
 import type { ApiKey } from "@/lib/types"
 
-export function QuotaCarousel({ keys }: { keys: ApiKey[] }) {
+export function QuotaCarousel({
+    keys,
+    title,
+}: {
+    keys: ApiKey[]
+    title?: string
+}) {
     const selectedId = useUiStore((s) => s.selectedApiKeyId)
     const setSelected = useUiStore((s) => s.setSelectedApiKeyId)
 
@@ -23,23 +31,31 @@ export function QuotaCarousel({ keys }: { keys: ApiKey[] }) {
         align: "start",
         dragFree: true,
         containScroll: "trimSnaps",
+        duration: 32,
     })
 
     const [activeIndex, setActiveIndex] = React.useState(startIndex)
+    const [canPrev, setCanPrev] = React.useState(false)
+    const [canNext, setCanNext] = React.useState(false)
 
     React.useEffect(() => {
         if (!emblaApi) return
-        const onSelect = () => {
+        const sync = () => {
             const idx = emblaApi.selectedScrollSnap()
             setActiveIndex(idx)
+            setCanPrev(emblaApi.canScrollPrev())
+            setCanNext(emblaApi.canScrollNext())
             const key = keys[idx]
             if (key && key.id !== selectedId) {
                 setSelected(key.id)
             }
         }
-        emblaApi.on("select", onSelect)
+        sync()
+        emblaApi.on("select", sync)
+        emblaApi.on("reInit", sync)
         return () => {
-            emblaApi.off("select", onSelect)
+            emblaApi.off("select", sync)
+            emblaApi.off("reInit", sync)
         }
     }, [emblaApi, keys, selectedId, setSelected])
 
@@ -52,11 +68,43 @@ export function QuotaCarousel({ keys }: { keys: ApiKey[] }) {
     }, [emblaApi, keys, selectedId])
 
     if (keys.length === 1) {
-        return <QuotaCard apiKey={keys[0]} color={keyPalette[0]} />
+        return (
+            <div className="space-y-2">
+                {title ? (
+                    <h2 className="px-1 text-base font-semibold">{title}</h2>
+                ) : null}
+                <QuotaCard apiKey={keys[0]} color={keyPalette[0]} />
+            </div>
+        )
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-2">
+            {title ? (
+                <div className="flex items-center justify-between px-1">
+                    <h2 className="text-base font-semibold">{title}</h2>
+                    <div className="flex items-center gap-1">
+                        <button
+                            type="button"
+                            aria-label="Previous key"
+                            onClick={() => emblaApi?.scrollPrev()}
+                            disabled={!canPrev}
+                            className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-muted-foreground transition-all hover:text-foreground active:scale-90 disabled:opacity-40 disabled:active:scale-100"
+                        >
+                            <HugeiconsIcon icon={ArrowLeft02Icon} size={14} />
+                        </button>
+                        <button
+                            type="button"
+                            aria-label="Next key"
+                            onClick={() => emblaApi?.scrollNext()}
+                            disabled={!canNext}
+                            className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-muted-foreground transition-all hover:text-foreground active:scale-90 disabled:opacity-40 disabled:active:scale-100"
+                        >
+                            <HugeiconsIcon icon={ArrowRight02Icon} size={14} />
+                        </button>
+                    </div>
+                </div>
+            ) : null}
             <div
                 className="-my-2 -mr-4 -ml-2 overflow-hidden py-2 pl-2"
                 ref={emblaRef}
