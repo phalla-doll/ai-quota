@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import Image from "next/image"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
     ChartLineData01Icon,
@@ -10,6 +9,7 @@ import {
     TestTube01Icon,
 } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/button"
+import { AppLogo } from "@/components/brand/app-logo"
 import { AddKeyDrawer } from "@/components/settings/add-key-drawer"
 
 const features = [
@@ -35,14 +35,7 @@ export function WelcomeScreen() {
     return (
         <div className="flex min-h-svh flex-col px-6 pt-[max(env(safe-area-inset-top),2.5rem)] pb-[max(env(safe-area-inset-bottom),1.5rem)]">
             <div className="flex flex-1 flex-col items-center justify-center text-center">
-                <Image
-                    src="/icon-512.png"
-                    alt="AI Quota"
-                    width={72}
-                    height={72}
-                    priority
-                    className="size-18 rounded-2xl"
-                />
+                <AppLogo size={72} className="size-18" />
 
                 <h1 className="mt-5 text-2xl font-semibold tracking-tight">
                     Welcome to AI Quota
