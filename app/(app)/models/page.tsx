@@ -25,7 +25,7 @@ const palette = [
 ]
 
 export default function ModelsPage() {
-    const [range, setRange] = React.useState<Range>("7")
+    const [range, setRange] = React.useState<Range>("1")
     const selected = useSelectedApiKey()
     const { data, isLoading, error } = useKeyModelUsage(selected, Number(range))
 

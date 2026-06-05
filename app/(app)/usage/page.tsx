@@ -29,7 +29,7 @@ type Range = (typeof rangeOptions)[number]["value"]
 type Metric = (typeof metricOptions)[number]["value"]
 
 export default function UsagePage() {
-    const [range, setRange] = React.useState<Range>("7")
+    const [range, setRange] = React.useState<Range>("1")
     const [metric, setMetric] = React.useState<Metric>("tokens")
     const { data: keys } = useApiKeys()
     const keyList = React.useMemo(() => keys ?? [], [keys])

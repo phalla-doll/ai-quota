@@ -27,7 +27,7 @@ const ranges = [
 const palette = keyPalette
 
 export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
-    const [range, setRange] = React.useState<number>(7)
+    const [range, setRange] = React.useState<number>(1)
     const results = useKeysModelUsage(keys, range)
 
     const isLoading = results.some((r) => r.isLoading)
