@@ -21,6 +21,8 @@ export function QuotaCarousel({ keys }: { keys: ApiKey[] }) {
         startIndex,
         loop: false,
         align: "start",
+        dragFree: true,
+        containScroll: "trimSnaps",
     })
 
     const [activeIndex, setActiveIndex] = React.useState(startIndex)
