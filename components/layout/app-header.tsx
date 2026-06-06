@@ -2,7 +2,11 @@
 
 import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { ChevronDownIcon, PlusSignIcon } from "@hugeicons/core-free-icons"
+import {
+    ChevronDownIcon,
+    PlusSignIcon,
+    AutomotiveBattery02Icon,
+} from "@hugeicons/core-free-icons"
 import { AddKeyDrawer } from "@/components/settings/add-key-drawer"
 import {
     Drawer,
@@ -152,11 +156,12 @@ export function AppHeader({
             {showWarmUp ? (
                 <Button
                     variant="secondary"
-                    size="sm"
+                    size="icon"
                     className="mt-1 shrink-0 rounded-full"
+                    aria-label="Warm up keys"
                     onClick={onWarmUp}
                 >
-                    Warm up
+                    <HugeiconsIcon icon={AutomotiveBattery02Icon} size={16} />
                 </Button>
             ) : null}
             <AddKeyDrawer
