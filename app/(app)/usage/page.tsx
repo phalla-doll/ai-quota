@@ -186,130 +186,141 @@ export default function UsagePage() {
                                     Models by key
                                 </h2>
                                 <div className="divide-y divide-border/60">
-                                    {keyList.map((k, i) => {
-                                        const data = results[i]?.data
-                                        const models = data?.modelSummaryList
-                                            ?.slice()
-                                            .sort(
-                                                (a, b) =>
-                                                    b.totalTokens -
-                                                    a.totalTokens
-                                            )
-                                        const total =
-                                            data?.totalUsage.totalTokensUsage ??
-                                            0
-                                        const color = keyColor(i)
-                                        return (
-                                            <div
-                                                key={k.id}
-                                                className="py-4 first:pt-0 last:pb-0"
-                                            >
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <div className="flex min-w-0 items-center gap-2.5">
-                                                        <span
-                                                            className="h-2.5 w-2.5 shrink-0 rounded-full"
-                                                            style={{
-                                                                background:
-                                                                    color,
-                                                            }}
-                                                        />
-                                                        <div className="truncate text-sm font-medium">
-                                                            {k.name}
+                                    {keyList
+                                        .map((k, i) => ({
+                                            k,
+                                            i,
+                                            total:
+                                                results[i]?.data?.totalUsage
+                                                    .totalTokensUsage ?? 0,
+                                        }))
+                                        .sort((a, b) => b.total - a.total)
+                                        .map(({ k, i }) => {
+                                            const data = results[i]?.data
+                                            const models =
+                                                data?.modelSummaryList
+                                                    ?.slice()
+                                                    .sort(
+                                                        (a, b) =>
+                                                            b.totalTokens -
+                                                            a.totalTokens
+                                                    )
+                                            const total =
+                                                data?.totalUsage
+                                                    .totalTokensUsage ?? 0
+                                            const color = keyColor(i)
+                                            return (
+                                                <div
+                                                    key={k.id}
+                                                    className="py-4 first:pt-0 last:pb-0"
+                                                >
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div className="flex min-w-0 items-center gap-2.5">
+                                                            <span
+                                                                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                                                                style={{
+                                                                    background:
+                                                                        color,
+                                                                }}
+                                                            />
+                                                            <div className="truncate text-sm font-medium">
+                                                                {k.name}
+                                                            </div>
                                                         </div>
+                                                        {isLoading && !data ? (
+                                                            <Skeleton className="h-4 w-12 rounded-md" />
+                                                        ) : (
+                                                            <div className="text-sm font-semibold tabular-nums">
+                                                                {formatCompactNumber(
+                                                                    total
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     {isLoading && !data ? (
-                                                        <Skeleton className="h-4 w-12 rounded-md" />
+                                                        <div className="mt-3 space-y-2.5 pl-5">
+                                                            {Array.from({
+                                                                length: 2,
+                                                            }).map((_, j) => (
+                                                                <div
+                                                                    key={j}
+                                                                    className="space-y-1.5"
+                                                                >
+                                                                    <div className="flex items-center justify-between gap-3">
+                                                                        <Skeleton className="h-3 w-24 rounded-md" />
+                                                                        <Skeleton className="h-3 w-10 rounded-md" />
+                                                                    </div>
+                                                                    <Skeleton className="h-1 w-full rounded-full" />
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : !models ||
+                                                      models.length === 0 ? (
+                                                        <div className="mt-3 pl-5 text-xs text-muted-foreground">
+                                                            No usage in{" "}
+                                                            {rangeLabel.toLowerCase()}
+                                                        </div>
                                                     ) : (
-                                                        <div className="text-sm font-semibold tabular-nums">
-                                                            {formatCompactNumber(
-                                                                total
-                                                            )}
+                                                        <div className="mt-3 space-y-2.5 pl-5">
+                                                            {models.map((m) => {
+                                                                const share =
+                                                                    total > 0
+                                                                        ? (m.totalTokens /
+                                                                              total) *
+                                                                          100
+                                                                        : 0
+                                                                const shareLabel =
+                                                                    share >= 1
+                                                                        ? `${Math.round(share)}%`
+                                                                        : share >
+                                                                            0
+                                                                          ? "<1%"
+                                                                          : "0%"
+                                                                return (
+                                                                    <div
+                                                                        key={
+                                                                            m.modelName
+                                                                        }
+                                                                        className="space-y-1.5"
+                                                                    >
+                                                                        <div className="flex items-center justify-between gap-3 text-[13px]">
+                                                                            <div className="truncate text-muted-foreground">
+                                                                                {
+                                                                                    m.modelName
+                                                                                }
+                                                                            </div>
+                                                                            <div className="flex shrink-0 items-center gap-3 tabular-nums">
+                                                                                <span className="w-10 text-right text-muted-foreground">
+                                                                                    {
+                                                                                        shareLabel
+                                                                                    }
+                                                                                </span>
+                                                                                <span className="min-w-14 text-right font-medium">
+                                                                                    {formatCompactNumber(
+                                                                                        m.totalTokens
+                                                                                    )}
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+                                                                            <div
+                                                                                className="h-full rounded-full transition-[width]"
+                                                                                style={{
+                                                                                    width: `${Math.max(share, share > 0 ? 2 : 0)}%`,
+                                                                                    background:
+                                                                                        color,
+                                                                                    opacity: 0.85,
+                                                                                }}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                )
+                                                            })}
                                                         </div>
                                                     )}
                                                 </div>
-                                                {isLoading && !data ? (
-                                                    <div className="mt-3 space-y-2.5 pl-5">
-                                                        {Array.from({
-                                                            length: 2,
-                                                        }).map((_, j) => (
-                                                            <div
-                                                                key={j}
-                                                                className="space-y-1.5"
-                                                            >
-                                                                <div className="flex items-center justify-between gap-3">
-                                                                    <Skeleton className="h-3 w-24 rounded-md" />
-                                                                    <Skeleton className="h-3 w-10 rounded-md" />
-                                                                </div>
-                                                                <Skeleton className="h-1 w-full rounded-full" />
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                ) : !models ||
-                                                  models.length === 0 ? (
-                                                    <div className="mt-3 pl-5 text-xs text-muted-foreground">
-                                                        No usage in{" "}
-                                                        {rangeLabel.toLowerCase()}
-                                                    </div>
-                                                ) : (
-                                                    <div className="mt-3 space-y-2.5 pl-5">
-                                                        {models.map((m) => {
-                                                            const share =
-                                                                total > 0
-                                                                    ? (m.totalTokens /
-                                                                          total) *
-                                                                      100
-                                                                    : 0
-                                                            const shareLabel =
-                                                                share >= 1
-                                                                    ? `${Math.round(share)}%`
-                                                                    : share > 0
-                                                                      ? "<1%"
-                                                                      : "0%"
-                                                            return (
-                                                                <div
-                                                                    key={
-                                                                        m.modelName
-                                                                    }
-                                                                    className="space-y-1.5"
-                                                                >
-                                                                    <div className="flex items-center justify-between gap-3 text-[13px]">
-                                                                        <div className="truncate text-muted-foreground">
-                                                                            {
-                                                                                m.modelName
-                                                                            }
-                                                                        </div>
-                                                                        <div className="flex shrink-0 items-center gap-3 tabular-nums">
-                                                                            <span className="w-10 text-right text-muted-foreground">
-                                                                                {
-                                                                                    shareLabel
-                                                                                }
-                                                                            </span>
-                                                                            <span className="min-w-14 text-right font-medium">
-                                                                                {formatCompactNumber(
-                                                                                    m.totalTokens
-                                                                                )}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
-                                                                        <div
-                                                                            className="h-full rounded-full transition-[width]"
-                                                                            style={{
-                                                                                width: `${Math.max(share, share > 0 ? 2 : 0)}%`,
-                                                                                background:
-                                                                                    color,
-                                                                                opacity: 0.85,
-                                                                            }}
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            )
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )
-                                    })}
+                                            )
+                                        })}
                                 </div>
                             </CardContent>
                         </Card>
