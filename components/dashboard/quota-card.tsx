@@ -15,6 +15,12 @@ function labelFor(limit: QuotaLimit): string {
     return limit.type
 }
 
+function quotaToneClass(remaining: number): string {
+    if (remaining >= 75) return "bg-emerald-500"
+    if (remaining >= 25) return "bg-amber-500"
+    return "bg-red-500"
+}
+
 export function QuotaCard({
     apiKey,
     color,
@@ -132,7 +138,12 @@ export function QuotaCard({
                     </div>
                 </div>
 
-                <Progress value={100 - primary.percentage} />
+                <Progress
+                    value={100 - primary.percentage}
+                    indicatorClassName={quotaToneClass(
+                        100 - primary.percentage
+                    )}
+                />
 
                 {others.length > 0 && (
                     <div className="space-y-3 pt-1">
@@ -146,7 +157,12 @@ export function QuotaCard({
                                         {100 - l.percentage}%
                                     </span>
                                 </div>
-                                <Progress value={100 - l.percentage} />
+                                <Progress
+                                    value={100 - l.percentage}
+                                    indicatorClassName={quotaToneClass(
+                                        100 - l.percentage
+                                    )}
+                                />
                             </div>
                         ))}
                     </div>
