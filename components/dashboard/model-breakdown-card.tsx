@@ -39,7 +39,7 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                 <CardContent className="px-5 py-5">
                     <div className="flex items-center justify-between">
                         <h2 className="text-base font-semibold">
-                            Tokens by key
+                            Token spend by key
                         </h2>
                         <RangePicker range={range} setRange={setRange} />
                     </div>
@@ -75,7 +75,7 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <Skeleton className="h-4 w-10 rounded-md" />
+                                        <Skeleton className="h-4 w-12 rounded-md" />
                                         <Skeleton className="h-3 w-8 rounded-md" />
                                     </div>
                                 </div>
@@ -103,7 +103,7 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                 <CardContent className="space-y-5 px-5 py-5">
                     <div className="flex items-center justify-between">
                         <h2 className="text-base font-semibold">
-                            Tokens by key
+                            Token spend by key
                         </h2>
                         <RangePicker range={range} setRange={setRange} />
                     </div>
@@ -128,7 +128,9 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
         <Card className="py-0 shadow-none">
             <CardContent className="px-5 py-5">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-base font-semibold">Tokens by key</h2>
+                    <h2 className="text-base font-semibold">
+                        Token spend by key
+                    </h2>
                     <RangePicker range={range} setRange={setRange} />
                 </div>
 
@@ -186,16 +188,6 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                                     </div>
                                     <div className="flex items-baseline gap-2">
                                         {p.errored ? (
-                                            <span className="text-sm text-muted-foreground tabular-nums">
-                                                n/a
-                                            </span>
-                                        ) : (
-                                            <PopNumber
-                                                value={shareLabel}
-                                                className="text-sm text-muted-foreground tabular-nums"
-                                            />
-                                        )}
-                                        {p.errored ? (
                                             <span className="text-sm font-semibold tabular-nums">
                                                 —
                                             </span>
@@ -205,6 +197,16 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
                                                     p.total
                                                 )}
                                                 className="text-sm font-semibold tabular-nums"
+                                            />
+                                        )}
+                                        {p.errored ? (
+                                            <span className="text-sm text-muted-foreground tabular-nums">
+                                                n/a
+                                            </span>
+                                        ) : (
+                                            <PopNumber
+                                                value={shareLabel}
+                                                className="text-sm text-muted-foreground tabular-nums"
                                             />
                                         )}
                                     </div>
