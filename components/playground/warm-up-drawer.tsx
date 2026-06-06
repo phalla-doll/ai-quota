@@ -4,11 +4,7 @@ import * as React from "react"
 import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
 import { HugeiconsIcon } from "@hugeicons/react"
-import {
-    FlashIcon,
-    Tick02Icon,
-    Alert02Icon,
-} from "@hugeicons/core-free-icons"
+import { FlashIcon, Tick02Icon, Alert02Icon } from "@hugeicons/core-free-icons"
 import {
     Drawer,
     DrawerContent,
@@ -111,7 +107,7 @@ export function WarmUpDrawer({ keys, open, onOpenChange }: WarmUpDrawerProps) {
                         Sends a 1-token{" "}
                         <Badge
                             variant="secondary"
-                            className="mx-0.5 font-mono align-middle"
+                            className="mx-0.5 align-middle font-mono"
                         >
                             {WARM_UP_MODEL}
                         </Badge>{" "}
