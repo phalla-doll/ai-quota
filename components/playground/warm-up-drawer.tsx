@@ -4,7 +4,7 @@ import * as React from "react"
 import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { FlashIcon, Tick02Icon, Alert02Icon } from "@hugeicons/core-free-icons"
+import { Tick02Icon, Alert02Icon } from "@hugeicons/core-free-icons"
 import {
     Drawer,
     DrawerContent,
@@ -14,9 +14,8 @@ import {
     DrawerFooter,
     DrawerClose,
 } from "@/components/ui/drawer"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { warmUpKey, WARM_UP_MODEL } from "@/lib/zai-client"
+import { warmUpKey } from "@/lib/zai-client"
 import { cn } from "@/lib/utils"
 import type { ApiKey } from "@/lib/types"
 
@@ -104,14 +103,8 @@ export function WarmUpDrawer({ keys, open, onOpenChange }: WarmUpDrawerProps) {
                 <DrawerHeader>
                     <DrawerTitle>Warm up keys</DrawerTitle>
                     <DrawerDescription>
-                        Sends a 1-token{" "}
-                        <Badge
-                            variant="secondary"
-                            className="mx-0.5 align-middle font-mono"
-                        >
-                            {WARM_UP_MODEL}
-                        </Badge>{" "}
-                        request to start the quota-reset countdown.
+                        Sends a 1-token request to start the quota-reset
+                        countdown.
                     </DrawerDescription>
                 </DrawerHeader>
 
@@ -167,7 +160,6 @@ export function WarmUpDrawer({ keys, open, onOpenChange }: WarmUpDrawerProps) {
                         onClick={fireAll}
                         disabled={anyPending || keys.length === 0}
                     >
-                        <HugeiconsIcon icon={FlashIcon} size={18} />
                         {anyPending
                             ? "Warming up…"
                             : `Warm up all (${keys.length})`}
