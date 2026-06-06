@@ -141,6 +141,13 @@
   --digit-ease: cubic-bezier(0.34, 1.45, 0.64, 1);
   --digit-dir-x: 0;
   --digit-dir-y: 1;
+
+  --step-slide-dur: 220ms;
+  --step-fade-dur: 200ms;
+  --step-slide-distance: 10px;
+  --step-blur: 3px;
+  --step-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --step-fade-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes t-digit-pop-in {
@@ -191,9 +198,41 @@
   }
 }
 
+.t-step-slide {
+  position: relative;
+}
+.t-step-slide .t-step[data-step-id="1"] {
+  --t-step-from-x: calc(var(--step-slide-distance) * -1);
+}
+.t-step-slide .t-step[data-step-id="2"] {
+  --t-step-from-x: var(--step-slide-distance);
+}
+.t-step-slide .t-step {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(var(--t-step-from-x, 0px));
+  filter: blur(var(--step-blur));
+  transition:
+    opacity   var(--step-fade-dur)  var(--step-fade-ease),
+    transform var(--step-slide-dur) var(--step-slide-ease),
+    filter    var(--step-slide-dur) var(--step-slide-ease);
+  will-change: opacity, transform, filter;
+}
+.t-step-slide[data-step="1"] .t-step[data-step-id="1"],
+.t-step-slide[data-step="2"] .t-step[data-step-id="2"] {
+  position: relative;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+  filter: blur(0);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .t-page {
     animation: none;
   }
   .t-digit-group .t-digit { animation: none !important; }
+  .t-step-slide .t-step { transition: none !important; }
 }

@@ -8,15 +8,15 @@ import {
     Sent02Icon,
     ChevronDownIcon,
     Delete02Icon,
-    FlashIcon,
 } from "@hugeicons/core-free-icons"
 import { AppHeader } from "@/components/layout/app-header"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { PickerDrawer } from "@/components/ui/picker-drawer"
 import { NoApiKeyState } from "@/components/dashboard/empty-state"
 import { WarmUpDrawer } from "@/components/playground/warm-up-drawer"
+import { KeyModelDrawer } from "@/components/playground/key-model-drawer"
 import { useApiKeys, useSelectedApiKey } from "@/hooks/use-api-keys"
+import { useUiStore } from "@/lib/stores/ui-store"
 import { useChatCompletion } from "@/hooks/use-chat-completion"
 import { useQuery } from "@tanstack/react-query"
 import { listModels, type ChatMessage } from "@/lib/zai-client"
@@ -61,6 +61,7 @@ type ChatTurn =
 export default function PlaygroundPage() {
     const { data: keys, isLoading: keysLoading } = useApiKeys()
     const selected = useSelectedApiKey()
+    const setSelectedKeyId = useUiStore((s) => s.setSelectedApiKeyId)
     const { data: models, isLoading: modelsLoading } = useAvailableModels()
     const send = useChatCompletion()
 
@@ -150,7 +151,9 @@ export default function PlaygroundPage() {
             <AppHeader
                 title="Playground"
                 subtitle="Chat with a key"
-                showKeySwitcher={hasKeys}
+                rightAction={hasKeys ? "warmup" : "switcher"}
+                showKeySwitcher={false}
+                onWarmUp={() => setWarmUpOpen(true)}
             />
 
             {keysLoading ? (
@@ -175,25 +178,19 @@ export default function PlaygroundPage() {
                     <div className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b bg-background/90 px-4 py-2 backdrop-blur">
                         <button
                             type="button"
-                            disabled={modelsLoading}
                             onClick={() => setPickerOpen(true)}
-                            className="flex min-w-0 items-center gap-1 rounded-full bg-muted px-3 py-1.5 text-sm font-medium disabled:opacity-60"
+                            className="flex min-w-0 items-center gap-1 rounded-full bg-muted px-3 py-1.5 text-sm font-medium"
                         >
+                            <span className="truncate">
+                                {selected?.name ?? "Pick a key"}
+                            </span>
+                            <span className="text-muted-foreground">·</span>
                             <span className="truncate uppercase">
-                                {model || "Pick a model"}
+                                {model || "model"}
                             </span>
                             <HugeiconsIcon icon={ChevronDownIcon} size={14} />
                         </button>
                         <div className="flex items-center gap-1">
-                            <button
-                                type="button"
-                                onClick={() => setWarmUpOpen(true)}
-                                className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-                                aria-label="Warm up keys"
-                            >
-                                <HugeiconsIcon icon={FlashIcon} size={14} />
-                                Warm up
-                            </button>
                             <button
                                 type="button"
                                 onClick={clearChat}
@@ -205,18 +202,16 @@ export default function PlaygroundPage() {
                                 Clear
                             </button>
                         </div>
-                        <PickerDrawer
-                            value={model}
-                            options={(models ?? []).map((m) => ({
-                                value: m,
-                                label: m.toUpperCase(),
-                            }))}
-                            onChange={setChosenModel}
-                            title="Pick a model"
-                            description="Models available on the selected key."
+                        <KeyModelDrawer
                             open={pickerOpen}
                             onOpenChange={setPickerOpen}
-                            hideTrigger
+                            keys={keys ?? []}
+                            selectedKeyId={selected?.id ?? null}
+                            onSelectKey={setSelectedKeyId}
+                            models={models}
+                            modelsLoading={modelsLoading}
+                            selectedModel={model}
+                            onSelectModel={setChosenModel}
                         />
                         <WarmUpDrawer
                             keys={keys ?? []}

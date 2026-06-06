@@ -23,7 +23,8 @@ type AppHeaderProps = {
     title: string
     subtitle?: string
     showKeySwitcher?: boolean
-    rightAction?: "switcher" | "add"
+    rightAction?: "switcher" | "add" | "warmup"
+    onWarmUp?: () => void
 }
 
 export function AppHeader({
@@ -31,6 +32,7 @@ export function AppHeader({
     subtitle,
     showKeySwitcher = true,
     rightAction = "switcher",
+    onWarmUp,
 }: AppHeaderProps) {
     const { data: keys } = useApiKeys()
     const selected = useSelectedApiKey()
@@ -41,6 +43,7 @@ export function AppHeader({
     const showSwitcher =
         rightAction === "switcher" && showKeySwitcher && keys && keys.length > 0
     const showAdd = rightAction === "add"
+    const showWarmUp = rightAction === "warmup"
 
     return (
         <div
@@ -144,6 +147,16 @@ export function AppHeader({
                     onClick={() => setAddOpen(true)}
                 >
                     <HugeiconsIcon icon={PlusSignIcon} size={16} />
+                </Button>
+            ) : null}
+            {showWarmUp ? (
+                <Button
+                    variant="secondary"
+                    size="sm"
+                    className="mt-1 shrink-0 rounded-full"
+                    onClick={onWarmUp}
+                >
+                    Warm up
                 </Button>
             ) : null}
             <AddKeyDrawer
