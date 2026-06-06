@@ -4,6 +4,8 @@ A mobile-first dashboard that surfaces your Z.ai (GLM) usage — the same number
 
 Designed to run as a Telegram Mini App, but works fine as a plain web app too.
 
+![Z.ai Quota Tracker](public/ai-qouta-screenshot.png)
+
 ---
 
 ## What it shows
