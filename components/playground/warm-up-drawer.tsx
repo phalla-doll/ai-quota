@@ -103,8 +103,7 @@ export function WarmUpDrawer({ keys, open, onOpenChange }: WarmUpDrawerProps) {
                 <DrawerHeader>
                     <DrawerTitle>Warm up keys</DrawerTitle>
                     <DrawerDescription>
-                        Sends a 1-token request to start the quota-reset
-                        countdown.
+                        Starts the quota-reset countdown.
                     </DrawerDescription>
                 </DrawerHeader>
 
