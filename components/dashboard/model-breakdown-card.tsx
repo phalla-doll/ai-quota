@@ -88,12 +88,14 @@ export function ModelBreakdownCard({ keys }: { keys: ApiKey[] }) {
         )
     }
 
-    const perKey = keys.map((k, i) => ({
-        key: k,
-        color: palette[i % palette.length],
-        total: results[i].data?.totalUsage.totalTokensUsage ?? 0,
-        errored: Boolean(results[i].error),
-    }))
+    const perKey = keys
+        .map((k, i) => ({
+            key: k,
+            color: palette[i % palette.length],
+            total: results[i].data?.totalUsage.totalTokensUsage ?? 0,
+            errored: Boolean(results[i].error),
+        }))
+        .sort((a, b) => b.total - a.total)
 
     const total = perKey.reduce((sum, p) => sum + p.total, 0)
 
