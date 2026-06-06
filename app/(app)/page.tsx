@@ -31,23 +31,8 @@ export default function DashboardPage() {
                     <NoApiKeyState />
                 ) : (
                     <>
-                        {keys!.length > 1 ? (
-                            <>
-                                <ModelBreakdownCard keys={keys!} />
-                                <QuotaCarousel
-                                    keys={keys!}
-                                    title="Quota by key"
-                                />
-                            </>
-                        ) : (
-                            <>
-                                <QuotaCarousel
-                                    keys={keys!}
-                                    title="Quota by key"
-                                />
-                                <ModelBreakdownCard keys={keys!} />
-                            </>
-                        )}
+                        <QuotaCarousel keys={keys!} title="Quota by key" />
+                        <ModelBreakdownCard keys={keys!} />
                     </>
                 )}
             </div>
