@@ -107,26 +107,22 @@ export function KeyModelDrawer({
                     </section>
 
                     <section className="t-step" data-step-id="2">
-                        <DrawerHeader>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setStep(1)}
-                                    className="-ml-1 flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                    aria-label="Back to keys"
-                                >
-                                    <HugeiconsIcon
-                                        icon={ArrowLeft02Icon}
-                                        size={16}
-                                    />
-                                </button>
-                                <div className="flex-1 text-left">
-                                    <DrawerTitle>Pick a model</DrawerTitle>
-                                    <DrawerDescription>
-                                        Models available on the selected key.
-                                    </DrawerDescription>
-                                </div>
-                            </div>
+                        <DrawerHeader className="relative">
+                            <button
+                                type="button"
+                                onClick={() => setStep(1)}
+                                className="absolute top-4 left-3 flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                aria-label="Back to keys"
+                            >
+                                <HugeiconsIcon
+                                    icon={ArrowLeft02Icon}
+                                    size={16}
+                                />
+                            </button>
+                            <DrawerTitle>Pick a model</DrawerTitle>
+                            <DrawerDescription>
+                                Models available on the selected key.
+                            </DrawerDescription>
                         </DrawerHeader>
                         <div className="max-h-[60vh] overflow-y-auto px-2 pb-4">
                             {modelsLoading ? (
