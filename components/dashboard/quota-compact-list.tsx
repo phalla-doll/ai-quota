@@ -95,7 +95,7 @@ export function QuotaCompactList({ keys }: { keys: ApiKey[] }) {
 
     return (
         <Card className="overflow-hidden py-0 shadow-none">
-            <CardContent className="px-0 py-0">
+            <CardContent className="px-0 py-2">
                 <div className="divide-y">
                     {keys.map((k, i) => (
                         <CompactRow
