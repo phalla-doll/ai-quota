@@ -50,23 +50,20 @@ function CompactRow({
                     className="h-2.5 w-2.5 shrink-0 rounded-full"
                     style={{ backgroundColor: color }}
                 />
-                <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm leading-tight font-medium">
+                <div className="flex min-w-0 flex-1 items-baseline gap-2">
+                    <span className="truncate text-sm leading-tight font-medium">
                         {apiKey.name}
-                    </div>
-                    <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                        {quota.isLoading || !quota.data ? (
-                            <Skeleton className="inline-block h-3 w-32 rounded" />
-                        ) : (
-                            <>
-                                Plan{" "}
-                                <span className="font-medium uppercase">
-                                    {quota.data.level}
-                                </span>
-                                {reset ? ` · Resets in ${reset}` : ""}
-                            </>
-                        )}
-                    </div>
+                    </span>
+                    {quota.isLoading || !quota.data ? (
+                        <Skeleton className="h-3 w-14 shrink-0 rounded" />
+                    ) : (
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                            Plan{" "}
+                            <span className="font-medium uppercase">
+                                {quota.data.level}
+                            </span>
+                        </span>
+                    )}
                 </div>
                 <div className="text-base font-semibold tabular-nums">
                     {remaining === null ? (
@@ -84,6 +81,11 @@ function CompactRow({
                     className="h-2"
                     indicatorClassName={quotaToneClass(remaining)}
                 />
+            )}
+            {quota.data && (
+                <div className="text-xs text-muted-foreground">
+                    {reset ? `Resets in ${reset}` : "Not started yet"}
+                </div>
             )}
         </button>
     )
