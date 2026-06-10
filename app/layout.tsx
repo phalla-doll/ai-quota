@@ -11,7 +11,7 @@ import { LegacyStorageCleanup } from "@/components/providers/legacy-storage-clea
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" })
 
 const fontMono = Geist_Mono({
     subsets: ["latin"],
@@ -56,8 +56,8 @@ export default function RootLayout({
             className={cn(
                 "antialiased",
                 fontMono.variable,
-                "font-sans",
-                geist.variable
+                geist.variable,
+                "font-sans"
             )}
         >
             <body className="min-h-svh overscroll-none bg-background">
