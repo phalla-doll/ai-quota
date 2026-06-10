@@ -41,7 +41,7 @@ function CompactRow({
             type="button"
             onClick={onSelect}
             className={cn(
-                "flex w-full flex-col gap-2 px-5 py-4 text-left transition-colors",
+                "flex w-full flex-col gap-2 px-6 py-4 text-left transition-colors first:pt-6 last:pb-6",
                 selected ? "bg-muted/40" : "hover:bg-muted/20"
             )}
         >
@@ -97,7 +97,7 @@ export function QuotaCompactList({ keys }: { keys: ApiKey[] }) {
 
     return (
         <Card className="overflow-hidden py-0 shadow-none">
-            <CardContent className="px-0 py-2">
+            <CardContent className="px-0 py-0">
                 <div className="divide-y">
                     {keys.map((k, i) => (
                         <CompactRow
