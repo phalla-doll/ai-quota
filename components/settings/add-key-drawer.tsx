@@ -97,8 +97,7 @@ export function AddKeyDrawer({
                     <DrawerHeader className="relative">
                         <DrawerTitle>New API key</DrawerTitle>
                         <DrawerDescription>
-                            Stored in this browser only. We validate against
-                            Z.ai before saving.
+                            Stored on this device only.
                         </DrawerDescription>
                         <Button
                             type="submit"
