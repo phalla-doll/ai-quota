@@ -3,15 +3,17 @@
 import * as React from "react"
 import { toast } from "sonner"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { PlusSignIcon } from "@hugeicons/core-free-icons"
+import {
+    PlusSignIcon,
+    Tick01Icon,
+    Loading03Icon,
+} from "@hugeicons/core-free-icons"
 import {
     Drawer,
     DrawerContent,
     DrawerHeader,
     DrawerTitle,
     DrawerDescription,
-    DrawerFooter,
-    DrawerClose,
     DrawerTrigger,
 } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
@@ -92,15 +94,34 @@ export function AddKeyDrawer({
             ) : null}
             <DrawerContent>
                 <form onSubmit={onSubmit}>
-                    <DrawerHeader>
+                    <DrawerHeader className="relative">
                         <DrawerTitle>New API key</DrawerTitle>
                         <DrawerDescription>
                             Stored in this browser only. We validate against
                             Z.ai before saving.
                         </DrawerDescription>
+                        <Button
+                            type="submit"
+                            size="icon-lg"
+                            disabled={busy}
+                            aria-label={
+                                validating
+                                    ? "Validating"
+                                    : add.isPending
+                                      ? "Saving"
+                                      : "Validate & save"
+                            }
+                            className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full"
+                        >
+                            <HugeiconsIcon
+                                icon={busy ? Loading03Icon : Tick01Icon}
+                                size={18}
+                                className={busy ? "animate-spin" : ""}
+                            />
+                        </Button>
                     </DrawerHeader>
 
-                    <div className="space-y-4 px-4">
+                    <div className="space-y-4 px-4 pb-6">
                         <div className="space-y-1.5">
                             <Label htmlFor="key-name">Name</Label>
                             <Input
@@ -145,21 +166,6 @@ export function AddKeyDrawer({
                             />
                         </div>
                     </div>
-
-                    <DrawerFooter className="pt-6">
-                        <Button size="xl" type="submit" disabled={busy}>
-                            {validating
-                                ? "Validating..."
-                                : add.isPending
-                                  ? "Saving..."
-                                  : "Validate & save"}
-                        </Button>
-                        <DrawerClose asChild>
-                            <Button size="xl" type="button" variant="outline">
-                                Cancel
-                            </Button>
-                        </DrawerClose>
-                    </DrawerFooter>
                 </form>
             </DrawerContent>
         </Drawer>

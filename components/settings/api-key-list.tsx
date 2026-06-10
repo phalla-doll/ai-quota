@@ -12,6 +12,8 @@ import {
     EyeOffIcon,
     CheckmarkCircle01Icon,
     MoreVerticalIcon,
+    Tick01Icon,
+    Loading03Icon,
 } from "@hugeicons/core-free-icons"
 import {
     Drawer,
@@ -204,14 +206,35 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
             <Drawer open={renameOpen} onOpenChange={setRenameOpen}>
                 <DrawerContent>
                     <form onSubmit={onRename}>
-                        <DrawerHeader>
+                        <DrawerHeader className="relative">
                             <DrawerTitle>Rename key</DrawerTitle>
                             <DrawerDescription>
                                 Give this key a new display name. Only stored in
                                 this browser.
                             </DrawerDescription>
+                            <Button
+                                type="submit"
+                                size="icon-lg"
+                                disabled={rename.isPending}
+                                aria-label={
+                                    rename.isPending ? "Saving" : "Save"
+                                }
+                                className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full"
+                            >
+                                <HugeiconsIcon
+                                    icon={
+                                        rename.isPending
+                                            ? Loading03Icon
+                                            : Tick01Icon
+                                    }
+                                    size={18}
+                                    className={
+                                        rename.isPending ? "animate-spin" : ""
+                                    }
+                                />
+                            </Button>
                         </DrawerHeader>
-                        <div className="space-y-1.5 px-4">
+                        <div className="space-y-1.5 px-4 pb-6">
                             <Label htmlFor={`rename-${apiKey.id}`}>Name</Label>
                             <Input
                                 id={`rename-${apiKey.id}`}
@@ -222,24 +245,6 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                                 className="h-12 px-4 text-base md:text-base"
                             />
                         </div>
-                        <DrawerFooter className="pt-6">
-                            <Button
-                                size="xl"
-                                type="submit"
-                                disabled={rename.isPending}
-                            >
-                                {rename.isPending ? "Saving..." : "Save"}
-                            </Button>
-                            <DrawerClose asChild>
-                                <Button
-                                    size="xl"
-                                    type="button"
-                                    variant="outline"
-                                >
-                                    Cancel
-                                </Button>
-                            </DrawerClose>
-                        </DrawerFooter>
                     </form>
                 </DrawerContent>
             </Drawer>
