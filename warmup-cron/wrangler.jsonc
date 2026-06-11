@@ -1,0 +1,16 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "zai-warmup-cron",
+    "main": "worker.js",
+    "compatibility_date": "2026-06-01",
+    // No public URL — only the cron triggers invoke this Worker.
+    "workers_dev": false,
+    // Cloudflare crons run in UTC only. These are 06:00 / 11:00 / 16:00 at
+    // UTC+7, pre-offset to 23:00 / 04:00 / 09:00 UTC.
+    "triggers": {
+        "crons": ["0 23 * * *", "0 4 * * *", "0 9 * * *"]
+    },
+    "observability": {
+        "enabled": true
+    }
+}
