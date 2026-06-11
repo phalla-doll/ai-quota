@@ -8,6 +8,7 @@ import { formatCompactNumber } from "@/lib/format"
 import { useKeyQuota, useKeyModelUsage } from "@/hooks/use-key-quota"
 import type { QuotaLimit } from "@/lib/zai-monitor"
 import type { ApiKey } from "@/lib/types"
+import { Badge } from "../ui/badge"
 
 function labelFor(limit: QuotaLimit): string {
     if (limit.type === "TOKENS_LIMIT") return "5-hour quota"
@@ -31,15 +32,21 @@ export function QuotaCard({
     const quota = useKeyQuota(apiKey)
     const month = useKeyModelUsage(apiKey, 30)
 
-    const keyLabel = (
+    const keyRow = (plan?: string) => (
         <div className="flex items-center gap-2">
             <span
                 className="h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{ backgroundColor: color ?? "var(--muted-foreground)" }}
             />
             <span className="truncate text-sm font-medium">{apiKey.name}</span>
+            {plan ? (
+                <span className="ml-auto shrink-0">
+                    <Badge variant="secondary" className="uppercase">{plan}</Badge>
+                </span>
+            ) : null}
         </div>
     )
+    const keyLabel = keyRow()
 
     if (quota.isLoading) {
         return (
@@ -116,7 +123,7 @@ export function QuotaCard({
     return (
         <Card className="py-0 shadow-none">
             <CardContent className="space-y-5 px-5 py-5">
-                {keyLabel}
+                {keyRow(quota.data.level)}
                 <div className="space-y-1 text-center">
                     <div className="text-sm text-muted-foreground">
                         {labelFor(primary)} remaining
@@ -125,14 +132,13 @@ export function QuotaCard({
                         {100 - primary.percentage}%
                     </div>
                     <div className="text-xs text-muted-foreground">
-                        Plan{" "}
-                        <span className="font-medium uppercase">
-                            {quota.data.level}
-                        </span>
                         {primary.nextResetTime
-                            ? ` · Resets in ${formatDistanceToNowStrict(
+                            ? `Resets in ${formatDistanceToNowStrict(
                                   new Date(primary.nextResetTime)
-                              )}`
+                              )} (${new Intl.DateTimeFormat(undefined, {
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                              }).format(new Date(primary.nextResetTime))})`
                             : ""}
                         {quota.isFetching ? " · syncing…" : ""}
                     </div>
