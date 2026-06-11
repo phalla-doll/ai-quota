@@ -33,7 +33,12 @@ function CompactRow({
         quota.data?.limits[0]
     const remaining = primary ? 100 - primary.percentage : null
     const reset = primary?.nextResetTime
-        ? formatDistanceToNowStrict(new Date(primary.nextResetTime))
+        ? `${formatDistanceToNowStrict(
+              new Date(primary.nextResetTime)
+          )} (${new Intl.DateTimeFormat(undefined, {
+              hour: "numeric",
+              minute: "2-digit",
+          }).format(new Date(primary.nextResetTime))})`
         : null
 
     return (

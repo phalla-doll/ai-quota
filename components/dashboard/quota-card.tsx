@@ -41,7 +41,9 @@ export function QuotaCard({
             <span className="truncate text-sm font-medium">{apiKey.name}</span>
             {plan ? (
                 <span className="ml-auto shrink-0">
-                    <Badge variant="secondary" className="uppercase">{plan}</Badge>
+                    <Badge variant="secondary" className="uppercase">
+                        {plan}
+                    </Badge>
                 </span>
             ) : null}
         </div>
