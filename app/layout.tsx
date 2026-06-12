@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Geist_Mono } from "next/font/google"
+import localFont from "next/font/local"
 import Script from "next/script"
 
 import "./globals.css"
@@ -11,7 +12,32 @@ import { LegacyStorageCleanup } from "@/components/providers/legacy-storage-clea
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" })
+const sunghyun = localFont({
+    variable: "--font-sans-custom",
+    display: "swap",
+    src: [
+        {
+            path: "./fonts/SunghyunSans-Regular.woff2",
+            weight: "400",
+            style: "normal",
+        },
+        {
+            path: "./fonts/SunghyunSans-Medium.woff2",
+            weight: "500",
+            style: "normal",
+        },
+        {
+            path: "./fonts/SunghyunSans-SemiBold.woff2",
+            weight: "600",
+            style: "normal",
+        },
+        {
+            path: "./fonts/SunghyunSans-Bold.woff2",
+            weight: "700",
+            style: "normal",
+        },
+    ],
+})
 
 const fontMono = Geist_Mono({
     subsets: ["latin"],
@@ -56,7 +82,7 @@ export default function RootLayout({
             className={cn(
                 "antialiased",
                 fontMono.variable,
-                geist.variable,
+                sunghyun.variable,
                 "font-sans"
             )}
         >
