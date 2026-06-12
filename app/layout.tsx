@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils"
 const sunghyun = localFont({
     variable: "--font-sans-custom",
     display: "swap",
+    preload: false,
     src: [
         {
             path: "./fonts/SunghyunSans-Regular.woff2",
