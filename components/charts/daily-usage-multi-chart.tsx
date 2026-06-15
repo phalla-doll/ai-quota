@@ -86,8 +86,13 @@ export function DailyUsageMultiChart({ series, metric }: Props) {
                                 format(parseISO(l as string), "MMM d, yyyy")
                             }
                             formatter={(value, name) => {
-                                const s = series.find((x) => x.keyId === name)
-                                return [fmt(Number(value)), s?.name ?? label]
+                                const s = series.find(
+                                    (x) => x.keyId === name || x.name === name
+                                )
+                                return [
+                                    fmt(Number(value)),
+                                    s?.name ?? name ?? label,
+                                ]
                             }}
                         />
                         {series.map((s, i) => (
