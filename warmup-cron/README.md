@@ -46,16 +46,16 @@ POST https://api.z.ai/api/coding/paas/v4/chat/completions
 
 ## Schedule
 
-Three runs/day at **05:00, 10:00, 15:00 (UTC+7)**.
+Three runs/day at **05:30, 10:30, 15:30 (UTC+7)**.
 
 Cloudflare crons run in **UTC only**, so the +7 offset is pre-computed in
 `wrangler.jsonc`:
 
-| Local (UTC+7) | Cron (UTC)   |
-| ------------- | ------------ |
-| 05:00         | `0 22 * * *` |
-| 10:00         | `0 3 * * *`  |
-| 15:00         | `0 8 * * *`  |
+| Local (UTC+7) | Cron (UTC)    |
+| ------------- | ------------- |
+| 05:30         | `30 22 * * *` |
+| 10:30         | `30 3 * * *`  |
+| 15:30         | `30 8 * * *`  |
 
 ## Setup
 
