@@ -78,18 +78,14 @@ npx wrangler secret put TELEGRAM_BOT_TOKEN
 
 ## Schedule
 
-Four polls/day at **09:00, 13:00, 17:00, 21:00 (UTC+7)**. Cloudflare crons are
-UTC-only, so the +7 offset is pre-computed in `wrangler.jsonc`:
+Every **15 minutes** (`*/15 * * * *`). Quota can be exhausted in a few hours, so
+a coarse schedule would sail past 75/90/95% between polls and never alert; 15min
+keeps an alert within ~15min of the crossing. An every-N-minutes cron is
+timezone-independent, so unlike `warmup-cron` there's no UTC offset to compute.
 
-| Local (UTC+7) | Cron (UTC)   |
-| ------------- | ------------ |
-| 09:00         | `0 2 * * *`  |
-| 13:00         | `0 6 * * *`  |
-| 17:00         | `0 10 * * *` |
-| 21:00         | `0 14 * * *` |
-
-Polling more often is cheap — the `alert_state` ledger keeps each threshold to a
-single message per quota window regardless of poll frequency.
+Polling this often is cheap — the `alert_state` ledger keeps each threshold to a
+single message per quota window regardless of poll frequency. To change the
+cadence, edit `triggers.crons` in `wrangler.jsonc` and redeploy.
 
 ## Deploy
 

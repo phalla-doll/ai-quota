@@ -15,12 +15,13 @@
             "database_id": "8f863142-a37f-4271-a13f-ef1a8683d1b6"
         }
     ],
-    // Cloudflare crons run in UTC only. Poll a few times through the day; the
-    // alert_state ledger keeps each threshold to one message per quota window,
-    // so polling often is cheap. These are 09:00 / 13:00 / 17:00 / 21:00 at
-    // UTC+7, pre-offset to 02:00 / 06:00 / 10:00 / 14:00 UTC.
+    // Poll every 15 minutes so a threshold alert reaches the user within ~15min
+    // of crossing — quota can be exhausted in a few hours, so a coarse schedule
+    // would miss the crossing entirely. Frequent polling is cheap: the
+    // alert_state ledger caps each threshold to one message per quota window.
+    // (An every-N-minutes cron is timezone-independent, so no UTC offset needed.)
     "triggers": {
-        "crons": ["0 2 * * *", "0 6 * * *", "0 10 * * *", "0 14 * * *"]
+        "crons": ["*/15 * * * *"]
     },
     "observability": {
         "enabled": true
