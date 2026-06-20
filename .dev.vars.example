@@ -1,0 +1,4 @@
+# Copy to `.dev.vars` (gitignored) for local `wrangler dev` / `pnpm cf:preview`.
+# In production, set instead with: `wrangler secret put TELEGRAM_BOT_TOKEN`.
+# Used by app/api/keys to validate Telegram initData HMAC server-side.
+TELEGRAM_BOT_TOKEN=

@@ -9,6 +9,13 @@
         "directory": ".open-next/assets",
         "binding": "ASSETS"
     },
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "ai-quota",
+            "database_id": "8f863142-a37f-4271-a13f-ef1a8683d1b6"
+        }
+    ],
     "observability": {
         "enabled": true
     }
