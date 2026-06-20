@@ -1,0 +1,28 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "zai-alerts-cron",
+    "main": "worker.js",
+    "account_id": "e63e1c513f59ba1e5c5a83d2931cf61b",
+    "compatibility_date": "2026-06-01",
+    // No public URL — only the cron triggers invoke this Worker.
+    "workers_dev": false,
+    // Same D1 database as the Next app (../wrangler.jsonc). This Worker reads
+    // api_keys + user_config and writes the alert_state dedupe ledger.
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "ai-quota",
+            "database_id": "8f863142-a37f-4271-a13f-ef1a8683d1b6"
+        }
+    ],
+    // Cloudflare crons run in UTC only. Poll a few times through the day; the
+    // alert_state ledger keeps each threshold to one message per quota window,
+    // so polling often is cheap. These are 09:00 / 13:00 / 17:00 / 21:00 at
+    // UTC+7, pre-offset to 02:00 / 06:00 / 10:00 / 14:00 UTC.
+    "triggers": {
+        "crons": ["0 2 * * *", "0 6 * * *", "0 10 * * *", "0 14 * * *"]
+    },
+    "observability": {
+        "enabled": true
+    }
+}
