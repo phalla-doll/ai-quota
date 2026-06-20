@@ -1,6 +1,5 @@
 import type { NextRequest } from "next/server"
-import { getCloudflareContext } from "@opennextjs/cloudflare"
-import { validateInitData } from "@/lib/telegram-auth"
+import { authenticateTelegramRequest } from "@/lib/api-auth"
 import { normalizeApiKey, type ApiKey } from "@/lib/types"
 
 // Per-user API key storage backed by D1. Identity comes from a server-validated
@@ -16,8 +15,6 @@ import { normalizeApiKey, type ApiKey } from "@/lib/types"
 // Mutations are per-key so a client with a stale cache can only ever change the
 // row it names — it can never wipe the user's other keys. The bulk PUT also only
 // inserts/updates (never deletes), so it is safe even if called with a subset.
-
-const INIT_DATA_HEADER = "x-telegram-init-data"
 
 type KeyRow = {
     id: string
@@ -40,26 +37,6 @@ function rowToApiKey(r: KeyRow): ApiKey | null {
         createdAt: r.created_at,
         lastSyncedAt: r.last_synced_at,
     })
-}
-
-async function authenticate(req: NextRequest) {
-    const { env } = getCloudflareContext()
-    const initData = req.headers.get(INIT_DATA_HEADER)
-    if (!initData) {
-        return {
-            error: Response.json(
-                { error: "missing initData" },
-                { status: 401 }
-            ),
-        }
-    }
-    const result = await validateInitData(initData, env.TELEGRAM_BOT_TOKEN)
-    if (!result.ok) {
-        return {
-            error: Response.json({ error: result.reason }, { status: 401 }),
-        }
-    }
-    return { userId: result.user.id, db: env.DB }
 }
 
 // INSERT … ON CONFLICT(tg_user_id, id) DO UPDATE — one statement, one row.
@@ -96,7 +73,7 @@ function upsertStatement(
 }
 
 export async function GET(req: NextRequest) {
-    const auth = await authenticate(req)
+    const auth = await authenticateTelegramRequest(req)
     if ("error" in auth) return auth.error
 
     const { results } = await auth.db
@@ -114,7 +91,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    const auth = await authenticate(req)
+    const auth = await authenticateTelegramRequest(req)
     if ("error" in auth) return auth.error
 
     let body: unknown
@@ -138,7 +115,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-    const auth = await authenticate(req)
+    const auth = await authenticateTelegramRequest(req)
     if ("error" in auth) return auth.error
 
     const id = req.nextUrl.searchParams.get("id")
@@ -154,7 +131,7 @@ export async function DELETE(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-    const auth = await authenticate(req)
+    const auth = await authenticateTelegramRequest(req)
     if ("error" in auth) return auth.error
 
     let body: unknown
