@@ -23,7 +23,7 @@ Numbers shown on the Overview and Usage tabs come from Z.ai's own monitor endpoi
 
 ## Architecture
 
-Single Next.js app, no separate backend.
+Single Next.js app. The only server code is a CORS-bypass proxy plus a small Telegram-authenticated Cloudflare D1 layer that syncs your API keys across devices.
 
 ### Frontend
 
@@ -40,26 +40,31 @@ Single Next.js app, no separate backend.
 
 ### Server-side surface
 
-One Route Handler: `app/api/zai/[...path]/route.ts`. It's a pass-through proxy to Z.ai used to dodge browser CORS. Reads `Authorization` and `x-zai-endpoint` from the incoming request, forwards to one of:
+Two Route Handlers:
+
+**`app/api/zai/[...path]/route.ts`** — a stateless pass-through proxy to Z.ai used to dodge browser CORS. Reads `Authorization` and `x-zai-endpoint` from the incoming request, forwards to one of:
 
 - `https://api.z.ai/api/paas/v4` — standard inference
 - `https://api.z.ai/api/coding/paas/v4` — Coding Plan inference
 - `https://api.z.ai/api` — monitor endpoints (`/monitor/usage/quota/limit`, `/monitor/usage/model-usage?startTime=…&endTime=…`)
 
-The proxy is stateless. It never reads or stores the key body — only forwards the header.
+It never reads or stores the key body — only forwards the header.
+
+**`app/api/keys/route.ts`** — the API-key sync layer, backed by Cloudflare **D1** (binding `DB`, schema in `migrations/`). Every request carries a Telegram `initData` blob (`x-telegram-init-data` header) that the server HMAC-validates against the `TELEGRAM_BOT_TOKEN` secret (`lib/telegram-auth.ts`) before scoping any row to the verified Telegram user id. `GET` lists; `POST`/`DELETE` are per-key (so a stale client can only touch the row it names); `PUT` is a non-destructive bulk upsert used only by the one-time migration.
 
 ### Data persistence
 
-Entirely in `localStorage`. There is no database, no auth, no Worker, no D1.
+API keys are **D1-authoritative when running in Telegram**, with `localStorage` as an offline cache and instant-load mirror. Outside Telegram (e.g. plain `next dev`) the app degrades to localStorage-only. Everything else stays in `localStorage`.
 
 | Key | Holds |
 | --- | --- |
-| `zai-tracker-keys` | Array of API keys (`{ id, name, endpoint, key, monthlyBudgetCents, … }`) |
-| `zai:events:{keyId}` | Append-only Playground call log per key (token counts, cost in cents) |
-| `zai-tracker-ui` | Selected key id, usage-invalidation counter |
-| `zai-tracker-alerts` | Global threshold toggles + per-key `lastFiredPeriod` |
+| `zai-tracker-keys` | API-key cache (`{ id, name, endpoint, key, keyLast4, createdAt, lastSyncedAt }`); canonical copy lives in D1 when signed in |
+| `zai-tracker-ui` | Selected key id, UI prefs |
+| `zai-tracker-alerts` | Global threshold toggles + per-key `lastFired` |
 
-Plain plaintext. Fine for personal use on a device you control; **not** suitable as a shared hosted service.
+`hooks/use-api-keys.ts` (read + per-key optimistic mutations), `lib/api-keys.ts` (shared storage/network helpers), and `components/providers/key-migration.tsx` (one-time localStorage→D1 push) make up the client side; `normalizeApiKey` in `lib/types.ts` is the single key-shaping function shared by client and server.
+
+Keys are stored in plaintext (localStorage cache + the D1 `key` column); D1 rows are isolated per Telegram user but not encrypted at rest. Fine for personal use — treat the bot token and DB as sensitive.
 
 ---
 
@@ -116,7 +121,27 @@ pnpm start       # serve the build
 pnpm typecheck   # tsc --noEmit
 pnpm lint        # eslint
 pnpm format      # prettier --write
+pnpm cf:preview  # opennextjs-cloudflare build + wrangler dev (local D1 binding)
+pnpm cf:deploy   # opennextjs-cloudflare build + wrangler deploy
 ```
+
+---
+
+## Deployment
+
+The Next app deploys to Cloudflare via `@opennextjs/cloudflare` (root `wrangler.jsonc`, `pnpm cf:deploy`). The key-sync feature needs two extra pieces of setup:
+
+```bash
+# 1. Bot token — used to validate Telegram initData server-side.
+wrangler secret put TELEGRAM_BOT_TOKEN          # production
+echo "TELEGRAM_BOT_TOKEN=…" > .dev.vars          # local (gitignored)
+
+# 2. D1 database (binding `DB`) + schema.
+wrangler d1 create ai-quota                       # once; id goes in wrangler.jsonc
+wrangler d1 migrations apply ai-quota --remote    # apply migrations/
+```
+
+`next dev` picks up the binding too, via `initOpenNextCloudflareForDev()` in `next.config.ts`. The standalone `warmup-cron/` Worker deploys separately (see `warmup-cron/README.md`).
 
 ---
 
@@ -128,7 +153,7 @@ The app initialises the Telegram SDK on mount (`components/providers/telegram-pr
 2. `/newapp` → point at your deployed URL.
 3. Open it from inside Telegram — the SDK picks up `initData` automatically.
 
-There is no server-side `initData` HMAC validation, because there is no server beyond the proxy. If you ever add auth, that's where it'd go.
+`initData` **is** HMAC-validated server-side (`lib/telegram-auth.ts`) for the `/api/keys` D1 routes — that's the trust anchor for per-user key storage, so your keys follow your Telegram account across devices. It requires the bot token as a Worker secret (see Deployment). The rest of the app trusts the client (localStorage-only state needs no validation).
 
 ---
 
@@ -137,7 +162,7 @@ There is no server-side `initData` HMAC validation, because there is no server b
 - The monitor endpoints aren't officially documented. Field names could move under your feet.
 - Pay-as-you-go (non-Coding Plan) keys may not return useful monitor data. Set a budget on the key to fall back to Playground-tracked $ instead.
 - Playground cost is computed from a hand-maintained price table in `lib/zai-pricing.ts`. Treat as approximate.
-- Keys live in plaintext localStorage. Don't expose this app publicly without auth.
+- Keys are stored in plaintext (localStorage cache + the D1 `key` column). D1 rows are scoped per Telegram user but not encrypted at rest — keep the bot token and database private.
 - Telegram bot alerts (50/75/90/95) fire as in-app toasts only; there is no backend to push a message into Telegram on your behalf.
 
 ---
