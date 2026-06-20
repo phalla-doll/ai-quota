@@ -6,9 +6,11 @@
     // No public URL — only the cron triggers invoke this Worker.
     "workers_dev": false,
     // Cloudflare crons run in UTC only. These are 05:30 / 10:30 / 15:30 at
-    // UTC+7, pre-offset to 22:30 / 03:30 / 08:30 UTC.
+    // UTC+7, pre-offset to 22:30 / 03:30 / 08:30 UTC. Kept as ONE expression
+    // (hour list) rather than three so it counts as a single cron trigger
+    // against the account's 5-trigger limit, leaving room for zai-alerts-cron.
     "triggers": {
-        "crons": ["30 22 * * *", "30 3 * * *", "30 8 * * *"]
+        "crons": ["30 3,8,22 * * *"]
     },
     "observability": {
         "enabled": true
