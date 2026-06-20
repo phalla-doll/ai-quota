@@ -114,15 +114,23 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
             setRenameOpen(false)
             return
         }
-        await rename.mutateAsync({ id: apiKey.id, name: next })
-        toast.success(`Renamed to “${next}”`)
-        setRenameOpen(false)
+        try {
+            await rename.mutateAsync({ id: apiKey.id, name: next })
+            toast.success(`Renamed to “${next}”`)
+            setRenameOpen(false)
+        } catch {
+            // useRenameApiKey surfaced the sync failure; keep the drawer open.
+        }
     }
 
     async function onDelete() {
-        await del.mutateAsync(apiKey.id)
-        toast.success(`Removed “${apiKey.name}”`)
-        setConfirmDelete(false)
+        try {
+            await del.mutateAsync(apiKey.id)
+            toast.success(`Removed “${apiKey.name}”`)
+            setConfirmDelete(false)
+        } catch {
+            // useDeleteApiKey surfaced the sync failure; keep the drawer open.
+        }
     }
 
     async function onCopy() {
@@ -209,8 +217,8 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                         <DrawerHeader className="relative">
                             <DrawerTitle>Rename key</DrawerTitle>
                             <DrawerDescription>
-                                Give this key a new display name. Only stored in
-                                this browser.
+                                Give this key a new display name. Synced to your
+                                Telegram account.
                             </DrawerDescription>
                             <Button
                                 type="submit"
@@ -254,7 +262,7 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
                     <DrawerHeader>
                         <DrawerTitle>Remove “{apiKey.name}”?</DrawerTitle>
                         <DrawerDescription>
-                            This removes the key from this browser.
+                            This removes the key from your Telegram account.
                         </DrawerDescription>
                     </DrawerHeader>
                     <DrawerFooter>

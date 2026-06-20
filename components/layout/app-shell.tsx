@@ -8,24 +8,35 @@ import { WelcomeScreen } from "@/components/dashboard/welcome-screen"
 import { useApiKeys } from "@/hooks/use-api-keys"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-    const { data: keys, isPending } = useApiKeys()
+    const {
+        data: keys,
+        isPending,
+        isPlaceholderData,
+        isFetching,
+    } = useApiKeys()
     const router = useRouter()
     const pathname = usePathname()
     const wasEmpty = React.useRef(false)
 
+    const hasKeys = !!keys && keys.length > 0
+
     React.useEffect(() => {
-        const hasKeys = !!keys && keys.length > 0
         if (wasEmpty.current && hasKeys && pathname !== "/") {
             router.replace("/")
         }
-        if (!isPending) wasEmpty.current = !hasKeys
-    }, [keys, isPending, pathname, router])
+        // Only record emptiness from settled (non-placeholder) data, so the
+        // redirect decision is based on server truth, not the stale local cache.
+        if (!isPlaceholderData) wasEmpty.current = !hasKeys
+    }, [hasKeys, isPlaceholderData, pathname, router])
 
-    if (isPending) {
+    // Block on the loading screen only when we have nothing useful to show yet:
+    // either the very first load, or a placeholder-empty cache while the real
+    // fetch is still in flight (avoids a WelcomeScreen flash before keys arrive).
+    if (isPending || (isPlaceholderData && isFetching && !hasKeys)) {
         return <div className="min-h-svh bg-background" />
     }
 
-    if (!keys || keys.length === 0) {
+    if (!hasKeys) {
         return <WelcomeScreen />
     }
 

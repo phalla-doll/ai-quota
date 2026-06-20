@@ -70,14 +70,19 @@ export function AddKeyDrawer({
             toast.error(`Key rejected: ${check.error}`)
             return
         }
-        await add.mutateAsync({
-            name: name.trim(),
-            apiKey: apiKey.trim(),
-            endpoint,
-        })
-        toast.success(`Added “${name.trim()}”`)
-        reset()
-        setOpen(false)
+        try {
+            await add.mutateAsync({
+                name: name.trim(),
+                apiKey: apiKey.trim(),
+                endpoint,
+            })
+            toast.success(`Added “${name.trim()}”`)
+            reset()
+            setOpen(false)
+        } catch {
+            // useAddApiKey already surfaced the sync failure; keep the drawer
+            // open with the entered values so the user can retry.
+        }
     }
 
     const busy = validating || add.isPending
@@ -97,7 +102,7 @@ export function AddKeyDrawer({
                     <DrawerHeader className="relative">
                         <DrawerTitle>New API key</DrawerTitle>
                         <DrawerDescription>
-                            Stored on this device only.
+                            Synced to your Telegram account.
                         </DrawerDescription>
                         <Button
                             type="submit"
