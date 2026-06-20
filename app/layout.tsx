@@ -9,6 +9,7 @@ import { QueryProvider } from "@/components/providers/query-provider"
 import { TelegramProvider } from "@/components/providers/telegram-provider"
 import { ScrollLockGuardian } from "@/components/providers/scroll-lock-guardian"
 import { LegacyStorageCleanup } from "@/components/providers/legacy-storage-cleanup"
+import { KeyMigration } from "@/components/providers/key-migration"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 
@@ -94,7 +95,10 @@ export default function RootLayout({
                 />
                 <ThemeProvider>
                     <QueryProvider>
-                        <TelegramProvider>{children}</TelegramProvider>
+                        <TelegramProvider>
+                            <KeyMigration />
+                            {children}
+                        </TelegramProvider>
                     </QueryProvider>
                 </ThemeProvider>
                 <ScrollLockGuardian />
