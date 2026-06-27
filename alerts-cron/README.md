@@ -20,6 +20,7 @@ server-side:
 | The keys          | D1 `api_keys.key` (per `tg_user_id`)                                |
 | Who to notify     | `tg_user_id` — usable as a Telegram `chat_id` for the Mini App user |
 | Which thresholds  | D1 `user_config` namespace `alerts` (synced from the settings UI)  |
+| Reset-time zone   | `timezone` on that same `alerts` blob (browser IANA zone; UTC fallback) |
 | How to send       | `TELEGRAM_BOT_TOKEN` (same bot that validates initData)             |
 
 ## How it works
@@ -38,7 +39,10 @@ server-side:
    ledger: **one message per threshold per quota window**. A jump from 0%→95%
    sends a single 95% message, not three. When `nextResetTime` rolls over, the
    window changes and the alerts re-arm.
-5. `sendMessage` via the Bot API with `chat_id = tg_user_id`.
+5. `sendMessage` via the Bot API with `chat_id = tg_user_id`. The reset time in
+   the message is rendered in the user's synced `timezone` (the browser IANA
+   zone `alerts-sync.tsx` rides along on the `alerts` blob), falling back to UTC
+   when none was synced — a Worker has no browser to resolve a local zone itself.
 
 Keys are evaluated concurrently (`Promise.allSettled`), so one slow or bad key
 never blocks or aborts the others. Each key's outcome is tallied in the run

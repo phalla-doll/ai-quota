@@ -101,11 +101,32 @@ async function sendMessage(env, chatId, text) {
     return { ok: false, status: res.status }
 }
 
-function alertText(keyName, threshold, percentage, resetAt) {
+// Render the reset instant in the user's synced IANA timezone (e.g.
+// "Asia/Bangkok"). Falls back to UTC when no zone was synced or it's unknown to
+// the runtime — the worker has no browser to resolve a local zone itself.
+function formatReset(resetAt, timezone) {
+    const d = new Date(Number(resetAt))
+    if (timezone) {
+        try {
+            return new Intl.DateTimeFormat("en-GB", {
+                timeZone: timezone,
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                timeZoneName: "short",
+            }).format(d)
+        } catch {
+            // Unknown/invalid zone → fall through to UTC.
+        }
+    }
+    return d.toUTCString()
+}
+
+function alertText(keyName, threshold, percentage, resetAt, timezone) {
     const pct = Math.round(percentage)
-    const reset = resetAt
-        ? `\nResets ${new Date(Number(resetAt)).toUTCString()}`
-        : ""
+    const reset = resetAt ? `\nResets ${formatReset(resetAt, timezone)}` : ""
     return (
         `⚠️ <b>${escapeHtml(keyName)}</b> has used <b>${pct}%</b> of its quota ` +
         `(crossed the ${threshold}% alert).${reset}`
@@ -121,13 +142,18 @@ function escapeHtml(s) {
 
 // ── Config / state (D1) ───────────────────────────────────────────────────────
 
-async function enabledThresholds(env, userId) {
+// Reads the user's `alerts` config blob and derives the values the run needs:
+//   { thresholds: number[], timezone: string | null }
+// `timezone` is the browser IANA zone the client rode along (alerts-sync.tsx);
+// null when absent so formatReset falls back to UTC.
+async function loadAlertPrefs(env, userId) {
     const row = await env.DB.prepare(
         `SELECT value FROM user_config WHERE tg_user_id = ? AND namespace = 'alerts'`
     )
         .bind(userId)
         .first()
     let enabled = DEFAULT_ENABLED
+    let timezone = null
     if (row?.value) {
         try {
             const parsed = JSON.parse(row.value)
@@ -140,21 +166,24 @@ async function enabledThresholds(env, userId) {
             ) {
                 enabled = parsed.enabled
             }
+            if (typeof parsed?.timezone === "string" && parsed.timezone) {
+                timezone = parsed.timezone
+            }
         } catch {
             // fall back to defaults
         }
     }
-    return ALL_THRESHOLDS.filter((t) => enabled[t])
+    return { thresholds: ALL_THRESHOLDS.filter((t) => enabled[t]), timezone }
 }
 
-// Memoize enabled-thresholds per user as a Promise, so concurrent keys for the
-// same user share a single user_config read instead of racing duplicates.
-function thresholdLoader(env) {
+// Memoize alert prefs per user as a Promise, so concurrent keys for the same
+// user share a single user_config read instead of racing duplicates.
+function prefsLoader(env) {
     const cache = new Map()
     return (userId) => {
         let p = cache.get(userId)
         if (!p) {
-            p = enabledThresholds(env, userId)
+            p = loadAlertPrefs(env, userId)
             cache.set(userId, p)
         }
         return p
@@ -187,7 +216,8 @@ async function setState(env, userId, keyId, period, maxNotified, now) {
 
 // Evaluate one key. Returns one of:
 //   "sent" | "skip" | "error" | "unsupported" | "unreachable"
-async function evaluateKey(env, userId, thresholds, keyRow, now) {
+async function evaluateKey(env, userId, prefs, keyRow, now) {
+    const { thresholds, timezone } = prefs
     if (thresholds.length === 0) return "skip"
 
     const usage = await fetchUsage(keyRow.key)
@@ -215,7 +245,7 @@ async function evaluateKey(env, userId, thresholds, keyRow, now) {
     const sent = await sendMessage(
         env,
         userId,
-        alertText(keyRow.name, crossed, usage.percentage, usage.resetAt)
+        alertText(keyRow.name, crossed, usage.percentage, usage.resetAt, timezone)
     )
     if (!sent.ok) {
         // 403 → user never started the bot, so it can never be DM'd. Don't
@@ -235,14 +265,14 @@ async function runAll(env) {
     ).all()
     const rows = results ?? []
 
-    const loadThresholds = thresholdLoader(env)
+    const loadPrefs = prefsLoader(env)
     const settled = await Promise.allSettled(
         rows.map(async (row) => {
-            const thresholds = await loadThresholds(row.tg_user_id)
+            const prefs = await loadPrefs(row.tg_user_id)
             return evaluateKey(
                 env,
                 row.tg_user_id,
-                thresholds,
+                prefs,
                 { id: row.id, name: row.name, key: row.key },
                 now
             )
