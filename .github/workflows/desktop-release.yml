@@ -1,0 +1,60 @@
+name: desktop release
+
+# Builds the Windows tray client and publishes the installer as a GitHub
+# release. `/install.ps1` (served by the Next app) downloads whatever `.exe` is
+# attached to the newest release, so publishing here is what makes the install
+# one-liner actually install something.
+#
+# Push a tag to cut a release:
+#   git tag desktop-v0.1.0 && git push origin desktop-v0.1.0
+#
+# Keep the tag version in step with `version` in desktop/src-tauri/tauri.conf.json.
+
+on:
+    push:
+        tags: ["desktop-v*"]
+    workflow_dispatch:
+
+jobs:
+    build:
+        # Cross-compiling Tauri to Windows from macOS/Linux needs the MSVC
+        # toolchain, so the build has to happen on Windows.
+        runs-on: windows-latest
+        permissions:
+            contents: write
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: x86_64-pc-windows-msvc
+
+            - uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: desktop/src-tauri
+
+            - name: Install CLI
+              working-directory: desktop
+              run: npm ci
+
+            - uses: tauri-apps/tauri-action@v0
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  projectPath: desktop
+                  tagName: ${{ github.ref_name }}
+                  releaseName: AI Quota ${{ github.ref_name }}
+                  releaseBody: |
+                      Install (pairs and installs in one go — get your code from
+                      Telegram → Settings → Linked devices):
+
+                      ```powershell
+                      $env:AI_QUOTA_CODE="YOUR-CODE"; irm https://<your-host>/install.ps1 | iex
+                      ```
+                  releaseDraft: false
+                  args: --target x86_64-pc-windows-msvc
