@@ -1,6 +1,9 @@
 {
     "$schema": "node_modules/wrangler/config-schema.json",
     "name": "zai-warmup-cron",
+    // Pinned like the other two Workers — the credentials see more than one
+    // account, and wrangler can't choose non-interactively without this.
+    "account_id": "e63e1c513f59ba1e5c5a83d2931cf61b",
     "main": "worker.js",
     "compatibility_date": "2026-06-01",
     // No public URL — only the cron triggers invoke this Worker.
