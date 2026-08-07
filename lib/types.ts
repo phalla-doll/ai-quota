@@ -50,3 +50,13 @@ export type ModelUsage = {
 }
 
 export type AlertThreshold = 50 | 75 | 90 | 95
+
+// A client paired via a code from the Mini App (the Windows tray app and any
+// other non-Telegram surface). Mirrors the `devices` row minus `token_hash` —
+// the token itself is never readable again after the claim. See /api/devices.
+export type Device = {
+    id: string
+    name: string
+    createdAt: string
+    lastSeenAt: string | null
+}
