@@ -23,7 +23,7 @@ Numbers shown on the Overview and Usage tabs come from Z.ai's own monitor endpoi
 
 ## Architecture
 
-Single Next.js app. The only server code is a CORS-bypass proxy plus a small Telegram-authenticated Cloudflare D1 layer that syncs your API keys across devices.
+Single Next.js app. The only server code is a CORS-bypass proxy plus a small authenticated Cloudflare D1 layer that syncs your API keys across devices — identity comes from Telegram inside the Mini App, or from a paired device token anywhere else.
 
 ### Frontend
 
@@ -40,8 +40,6 @@ Single Next.js app. The only server code is a CORS-bypass proxy plus a small Tel
 
 ### Server-side surface
 
-Two Route Handlers:
-
 **`app/api/zai/[...path]/route.ts`** — a stateless pass-through proxy to Z.ai used to dodge browser CORS. Reads `Authorization` and `x-zai-endpoint` from the incoming request, forwards to one of:
 
 - `https://api.z.ai/api/paas/v4` — standard inference
@@ -50,7 +48,18 @@ Two Route Handlers:
 
 It never reads or stores the key body — only forwards the header.
 
-**`app/api/keys/route.ts`** — the API-key sync layer, backed by Cloudflare **D1** (binding `DB`, schema in `migrations/`). Every request carries a Telegram `initData` blob (`x-telegram-init-data` header) that the server HMAC-validates against the `TELEGRAM_BOT_TOKEN` secret (`lib/telegram-auth.ts`) before scoping any row to the verified Telegram user id. `GET` lists; `POST`/`DELETE` are per-key (so a stale client can only touch the row it names); `PUT` is a non-destructive bulk upsert used only by the one-time migration.
+**`app/api/keys/route.ts`** — the API-key sync layer, backed by Cloudflare **D1** (binding `DB`, schema in `migrations/`). Every row is scoped to a user id the *server* established, never one the client claims. `GET` lists; `POST`/`DELETE` are per-key (so a stale client can only touch the row it names); `PUT` is a non-destructive bulk upsert used only by the one-time migration.
+
+**`lib/api-auth.ts`** — the shared gate in front of the D1 routes. Two credentials resolve to the same identity:
+
+| Header | Who sends it | Checked how |
+| --- | --- | --- |
+| `x-telegram-init-data` | the Mini App | HMAC against `TELEGRAM_BOT_TOKEN` (`lib/telegram-auth.ts`) |
+| `authorization: Bearer …` | a paired device | SHA-256 lookup in the `devices` table |
+
+**`app/api/devices/*`** — pairing. `POST /pair` mints a code (Telegram-only), `POST /claim` trades it for a device token (the only unauthenticated route — the code *is* the proof), `GET`/`DELETE` list and revoke (Telegram-only). Device management is deliberately Telegram-only: a leaked device token can read and write your keys, but it can't mint new codes or revoke devices, so it can't entrench itself.
+
+**`app/install.ps1/route.ts`** — serves the Windows setup one-liner (see [Linking a Windows device](#linking-a-windows-device)).
 
 ### Data persistence
 
@@ -64,7 +73,7 @@ API keys are **D1-authoritative when running in Telegram**, with `localStorage` 
 
 `hooks/use-api-keys.ts` (read + per-key optimistic mutations), `lib/api-keys.ts` (shared storage/network helpers), and `components/providers/key-migration.tsx` (one-time localStorage→D1 push) make up the client side; `normalizeApiKey` in `lib/types.ts` is the single key-shaping function shared by client and server.
 
-Keys are stored in plaintext (localStorage cache + the D1 `key` column); D1 rows are isolated per Telegram user but not encrypted at rest. Fine for personal use — treat the bot token and DB as sensitive.
+Keys are stored in plaintext (localStorage cache + the D1 `key` column); D1 rows are isolated per user but not encrypted at rest. Fine for personal use — treat the bot token and DB as sensitive. Pairing codes and device tokens are the exception — those are hashed, so a database leak can't be replayed as a credential.
 
 ---
 
@@ -87,7 +96,7 @@ Because these aren't in the public reference, they can change without warning. I
 /                Overview   — Per-key quota carousel + Tokens by model aggregated across all keys
 /usage           Usage      — Totals + daily breakdown (one line per key), aggregated across all keys
 /playground      Playground — Pick model, send prompt, see streamed reply + cost
-/settings        Settings   — Manage keys, alert thresholds, dark mode
+/settings        Settings   — Manage keys, linked devices, alert thresholds, dark mode
 /models          Models     — Total tokens, per-model ranked list (hidden from nav, still routable)
 ```
 
@@ -141,6 +150,8 @@ wrangler d1 create ai-quota                       # once; id goes in wrangler.js
 wrangler d1 migrations apply ai-quota --remote    # apply migrations/
 ```
 
+Device pairing needs `0003_devices.sql` applied before it works.
+
 `next dev` picks up the binding too, via `initOpenNextCloudflareForDev()` in `next.config.ts`. The standalone `warmup-cron/` Worker deploys separately (see `warmup-cron/README.md`).
 
 ---
@@ -153,7 +164,36 @@ The app initialises the Telegram SDK on mount (`components/providers/telegram-pr
 2. `/newapp` → point at your deployed URL.
 3. Open it from inside Telegram — the SDK picks up `initData` automatically.
 
-`initData` **is** HMAC-validated server-side (`lib/telegram-auth.ts`) for the `/api/keys` D1 routes — that's the trust anchor for per-user key storage, so your keys follow your Telegram account across devices. It requires the bot token as a Worker secret (see Deployment). The rest of the app trusts the client (localStorage-only state needs no validation).
+`initData` **is** HMAC-validated server-side (`lib/telegram-auth.ts`) for the D1 routes — that's the trust anchor for per-user key storage, so your keys follow your Telegram account across devices, and it's the root every device token descends from. It requires the bot token as a Worker secret (see Deployment). The rest of the app trusts the client (localStorage-only state needs no validation).
+
+---
+
+## Linking a Windows device
+
+Your keys live in D1 scoped to your Telegram account, so a desktop client needs a way to prove it's you without any Telegram context. It gets one by pairing: the Mini App mints a short-lived code, and the device trades it **once** for a long-lived token it stores locally.
+
+**Settings → Linked devices → Link a device** shows a code plus a ready-made PowerShell one-liner. Paste it into Windows PowerShell:
+
+```powershell
+$env:AI_QUOTA_CODE="K7F2-9QMX"; irm https://<your-host>/install.ps1 | iex
+```
+
+Or run it without the variable and the script prompts for the code:
+
+```powershell
+irm https://<your-host>/install.ps1 | iex
+```
+
+The script redeems the code against `/api/devices/claim`, writes the resulting token to `%APPDATA%\ai-quota\config.json`, and then installs the desktop client from the latest GitHub release. Set `AI_QUOTA_DEVICE_NAME` to override the name shown in Settings (defaults to `%COMPUTERNAME%`).
+
+> **No Windows client is published yet.** Today the script's pairing half works and the install half is a no-op — it says so and exits with the credentials saved, ready for the client when it ships.
+
+Details worth knowing:
+
+- Codes last **10 minutes**, are **single-use**, and only one is live per account — generating a new one kills the old.
+- A code is 8 characters of a base32 alphabet with no `I`/`L`/`O`/`U`, and is normalized before checking, so typing it lowercase, with dashes, or with `O` for `0` all work.
+- Only **SHA-256 hashes** of codes and tokens are stored. The plaintext of either never reaches the database.
+- Revoking a device in Settings kills its token immediately.
 
 ---
 
@@ -162,7 +202,8 @@ The app initialises the Telegram SDK on mount (`components/providers/telegram-pr
 - The monitor endpoints aren't officially documented. Field names could move under your feet.
 - Pay-as-you-go (non-Coding Plan) keys may not return useful monitor data. Set a budget on the key to fall back to Playground-tracked $ instead.
 - Playground cost is computed from a hand-maintained price table in `lib/zai-pricing.ts`. Treat as approximate.
-- Keys are stored in plaintext (localStorage cache + the D1 `key` column). D1 rows are scoped per Telegram user but not encrypted at rest — keep the bot token and database private.
+- Keys are stored in plaintext (localStorage cache, the D1 `key` column, and `%APPDATA%\ai-quota\config.json` on a paired Windows device). D1 rows are scoped per user but not encrypted at rest — keep the bot token and database private.
+- The Windows client itself doesn't exist yet. Pairing and the install script are in place; the release the script looks for isn't published.
 - Telegram bot alerts (50/75/90/95) fire as in-app toasts only; there is no backend to push a message into Telegram on your behalf.
 
 ---
