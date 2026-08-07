@@ -5,6 +5,7 @@ import { AppHeader } from "@/components/layout/app-header"
 import { AddKeyDrawer } from "@/components/settings/add-key-drawer"
 import { ApiKeyList } from "@/components/settings/api-key-list"
 import { AlertThresholds } from "@/components/settings/alert-thresholds"
+import { LinkedDevices } from "@/components/settings/linked-devices"
 import { SettingsSection } from "@/components/settings/section"
 import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
@@ -35,6 +36,13 @@ export default function SettingsPage() {
                     description="In-app warnings when monthly usage crosses each threshold."
                 >
                     <AlertThresholds />
+                </SettingsSection>
+
+                <SettingsSection
+                    title="Linked devices"
+                    description="Pair a desktop client with a one-time code. It gets the same keys as this account, and you can revoke it any time."
+                >
+                    <LinkedDevices />
                 </SettingsSection>
 
                 <SettingsSection title="Appearance">
