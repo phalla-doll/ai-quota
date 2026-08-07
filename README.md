@@ -59,6 +59,8 @@ It never reads or stores the key body — only forwards the header.
 
 **`app/api/devices/*`** — pairing. `POST /pair` mints a code (Telegram-only), `POST /claim` trades it for a device token (the only unauthenticated route — the code *is* the proof), `GET`/`DELETE` list and revoke (Telegram-only). Device management is deliberately Telegram-only: a leaked device token can read and write your keys, but it can't mint new codes or revoke devices, so it can't entrench itself.
 
+**`app/api/summary/route.ts`** — one number per key (`usedPct`, `worstPct`) for clients that can't run the browser's per-key fan-out, like a tray icon. Calls Z.ai directly rather than through the proxy — there's no browser here to have CORS problems.
+
 **`app/install.ps1/route.ts`** — serves the Windows setup one-liner (see [Linking a Windows device](#linking-a-windows-device)).
 
 ### Data persistence
@@ -184,9 +186,11 @@ Or run it without the variable and the script prompts for the code:
 irm https://<your-host>/install.ps1 | iex
 ```
 
-The script redeems the code against `/api/devices/claim`, writes the resulting token to `%APPDATA%\ai-quota\config.json`, and then installs the desktop client from the latest GitHub release. Set `AI_QUOTA_DEVICE_NAME` to override the name shown in Settings (defaults to `%COMPUTERNAME%`).
+The script redeems the code against `/api/devices/claim`, writes the resulting token to `%APPDATA%\ai-quota\config.json`, and then installs the tray client from the latest GitHub release. Set `AI_QUOTA_DEVICE_NAME` to override the name shown in Settings (defaults to `%COMPUTERNAME%`).
 
-> **No Windows client is published yet.** Today the script's pairing half works and the install half is a no-op — it says so and exits with the credentials saved, ready for the client when it ships.
+Once installed you get a tray icon whose ring fills with your most-used key (green → amber → red at 75% / 90%), a tooltip with the per-key numbers, and a popover on click. Right-click for **Refresh now**, **Open dashboard**, **Start with Windows**, and **Quit**. Source lives in [`desktop/`](desktop/README.md).
+
+> **No release is published yet**, so the install half of the script is currently a no-op — it reports that and exits with pairing saved. Cutting one is a `git tag desktop-v0.1.0 && git push --tags` away; CI builds it on `windows-latest`.
 
 Details worth knowing:
 
@@ -203,7 +207,7 @@ Details worth knowing:
 - Pay-as-you-go (non-Coding Plan) keys may not return useful monitor data. Set a budget on the key to fall back to Playground-tracked $ instead.
 - Playground cost is computed from a hand-maintained price table in `lib/zai-pricing.ts`. Treat as approximate.
 - Keys are stored in plaintext (localStorage cache, the D1 `key` column, and `%APPDATA%\ai-quota\config.json` on a paired Windows device). D1 rows are scoped per user but not encrypted at rest — keep the bot token and database private.
-- The Windows client itself doesn't exist yet. Pairing and the install script are in place; the release the script looks for isn't published.
+- The Windows tray client has never run on real Windows hardware — it's compile-checked and unit-tested on macOS, and no release has been cut yet.
 - Telegram bot alerts (50/75/90/95) fire as in-app toasts only; there is no backend to push a message into Telegram on your behalf.
 
 ---

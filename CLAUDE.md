@@ -50,6 +50,8 @@ How a non-Telegram client — the Windows tray app, any future desktop/native wi
 
 Codes and tokens live in `lib/device-auth.ts`. The code is 8 chars of an ambiguity-free base32 (no I/L/O/U) and is normalized before hashing, so a user can type it lowercase, dashed, or with O-for-0; the token is 32 random bytes. **Only SHA-256 hashes are stored** (migration `0003_devices.sql`) — the plaintext of either never lands in D1. `last_seen_at` is refreshed at most every 5 min, off the response path via `ctx.waitUntil`, so a polling client doesn't turn every read into a write.
 
+`app/api/summary/route.ts` is the rollup a badge can render: one `usedPct` per key plus `worstPct`, authenticated with either credential. The dashboard does this fan-out client-side (`useKeysModelUsage`), which a tray icon can't — so this route repeats it server-side, calling Z.ai directly (no browser, no CORS to dodge) and mirroring `fetchUsage` in `alerts-cron/worker.js`, including its `ok`/`unsupported`/`error` split. One bad key never fails the response.
+
 `app/install.ps1/route.ts` serves the `irm https://<host>/install.ps1 | iex` one-liner shown in the pairing drawer (with `$env:AI_QUOTA_CODE` pre-filled). The script does the claim itself and writes the token to `%APPDATA%\ai-quota\config.json`, so the desktop client starts authenticated and never implements the exchange; the API base is baked in from the request origin. Downloading the client binary from GitHub Releases is best-effort and currently a no-op — **no Windows client is published yet**, so today the script's useful half is pairing.
 
 ### Client data flow
@@ -75,6 +77,16 @@ Coding Plan keys go "cold" if idle; a tiny `glm-4.5-air` call keeps them warm. `
 
 ### Telegram usage alerts — second cron worker (`alerts-cron/`)
 A separate, independently deployed Cron Worker that DMs a user when one of their keys crosses an enabled usage threshold (50/75/90/95%, from `components/settings/alert-thresholds.tsx`). Unlike `warmup-cron`, it is **coupled to the app's D1 schema**: it reads `api_keys` and `user_config` (the `alerts` namespace, synced client-side by `components/providers/alerts-sync.tsx` via `/api/config`) and writes the `alert_state` dedupe ledger (migration `0002`), so each threshold fires at most once per quota window. It needs the same `DB` binding and `TELEGRAM_BOT_TOKEN` secret as the Next app, polls Z.ai's monitor endpoint directly, and sends via the Bot API with `chat_id = tg_user_id`. The 50/75/90/95 threshold set and defaults are duplicated from `lib/stores/alerts-store.ts` (separate deploy, no shared code) — keep them in sync. See `alerts-cron/README.md`. Caveat: the Bot API can't DM a user who never pressed Start in a private chat (reported as `unreachable`, never delivered).
+
+### Windows tray client (`desktop/`)
+A Tauri v2 app, independently built and released like the two crons — **not** part of the Next app's build, sharing no code with it. The whole contract between them is `GET /api/summary` plus the `%APPDATA%\ai-quota\config.json` the installer writes.
+
+- `src/config.rs` reads that file; the tray never performs the pairing exchange itself, so it is either paired at startup or shows "not paired".
+- `src/icon.rs` rasterises the tray icon at runtime — Windows tray icons are images with no text API, so the number becomes a ring that fills clockwise, tinted at the same 75/90 thresholds as the app's alerts. Covered by `cargo test`.
+- The popover is a static page inside the binary (`dist/index.html`), fed over IPC. It deliberately does **not** load the deployed web app: that authenticates with Telegram `initData`, which a desktop webview has none of, so it would render empty. "Open dashboard" opens the site in the browser instead.
+- Polls every 5 min (each poll costs one Z.ai call per key), vs the dashboard's 60s.
+
+Released by `.github/workflows/desktop-release.yml` on a `desktop-v*` tag, built on `windows-latest` (cross-compiling from macOS needs MSVC). `/install.ps1` installs whatever `.exe` is attached to `releases/latest`. See `desktop/README.md`.
 
 ### Deployment
 Three distinct Cloudflare Workers, all deployed separately: the Next app (via `@opennextjs/cloudflare`, root `wrangler.jsonc`, `pnpm cf:deploy`), `warmup-cron`, and `alerts-cron`. The Next app additionally needs the `TELEGRAM_BOT_TOKEN` secret (`wrangler secret put`, and `.dev.vars` locally) and the `DB` D1 binding; apply migrations with `wrangler d1 migrations apply ai-quota --remote` (`0003_devices.sql` must be applied before device pairing works). `alerts-cron` shares that same `DB` and secret, so it must be redeployed when the D1 schema changes and its migration (`0002_alert_state.sql`) must be applied before its first run.
