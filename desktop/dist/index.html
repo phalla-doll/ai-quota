@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>AI Quota</title>
+        <style>
+            /* Popover chrome. Deliberately tiny and dependency-free: this page
+               ships inside the binary and never touches the network — all data
+               arrives over IPC from Rust. */
+            :root {
+                --bg: #ffffff;
+                --fg: #0a0a0a;
+                --muted: #71717a;
+                --line: #e4e4e7;
+                --track: #f4f4f5;
+                --ok: #22c55e;
+                --warn: #f59e0b;
+                --crit: #ef4444;
+            }
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --bg: #0a0a0a;
+                    --fg: #fafafa;
+                    --muted: #a1a1aa;
+                    --line: #27272a;
+                    --track: #1c1c1f;
+                }
+            }
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                font:
+                    13px/1.45 "Segoe UI Variable Text",
+                    "Segoe UI",
+                    system-ui,
+                    sans-serif;
+                background: var(--bg);
+                color: var(--fg);
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                border: 1px solid var(--line);
+                border-radius: 12px;
+                overflow: hidden;
+                user-select: none;
+                cursor: default;
+            }
+            header {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                padding: 14px 16px 10px;
+            }
+            h1 {
+                font-size: 13px;
+                font-weight: 600;
+                margin: 0;
+            }
+            #stamp {
+                font-size: 11px;
+                color: var(--muted);
+            }
+            main {
+                flex: 1;
+                overflow-y: auto;
+                padding: 0 16px;
+            }
+            .key + .key {
+                margin-top: 14px;
+            }
+            .row {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 8px;
+                margin-bottom: 6px;
+            }
+            .name {
+                font-weight: 500;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .pct {
+                font-variant-numeric: tabular-nums;
+                font-weight: 600;
+                flex-shrink: 0;
+            }
+            .bar {
+                height: 6px;
+                border-radius: 999px;
+                background: var(--track);
+                overflow: hidden;
+            }
+            .fill {
+                height: 100%;
+                border-radius: 999px;
+                transition: width 0.3s ease;
+            }
+            .reset {
+                margin-top: 5px;
+                font-size: 11px;
+                color: var(--muted);
+            }
+            .empty {
+                display: flex;
+                height: 100%;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                padding: 24px;
+                color: var(--muted);
+                line-height: 1.6;
+            }
+            footer {
+                display: flex;
+                gap: 8px;
+                padding: 12px 16px;
+                border-top: 1px solid var(--line);
+            }
+            button {
+                flex: 1;
+                font: inherit;
+                padding: 7px 10px;
+                border-radius: 8px;
+                border: 1px solid var(--line);
+                background: transparent;
+                color: var(--fg);
+                cursor: pointer;
+            }
+            button:hover {
+                background: var(--track);
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>AI Quota</h1>
+            <span id="stamp"></span>
+        </header>
+        <main id="body"></main>
+        <footer>
+            <button id="refresh">Refresh</button>
+            <button id="open">Open dashboard</button>
+        </footer>
+
+        <script>
+            const { invoke } = window.__TAURI__.core
+            const { listen } = window.__TAURI__.event
+            const body = document.getElementById("body")
+            const stamp = document.getElementById("stamp")
+
+            const esc = (s) =>
+                String(s).replace(
+                    /[&<>"]/g,
+                    (c) =>
+                        ({
+                            "&": "&amp;",
+                            "<": "&lt;",
+                            ">": "&gt;",
+                            '"': "&quot;",
+                        })[c]
+                )
+
+            // Same thresholds as the tray ring (src/icon.rs) and the app's alerts.
+            const tint = (p) =>
+                p >= 90 ? "var(--crit)" : p >= 75 ? "var(--warn)" : "var(--ok)"
+
+            function resetLabel(iso) {
+                const ms = Date.parse(iso) - Date.now()
+                if (!Number.isFinite(ms)) return ""
+                if (ms <= 0) return "resetting now"
+                const h = Math.floor(ms / 3600000)
+                const m = Math.floor((ms % 3600000) / 60000)
+                return h ? `resets in ${h}h ${m}m` : `resets in ${m}m`
+            }
+
+            function note(text) {
+                body.innerHTML = `<div class="empty">${esc(text)}</div>`
+                stamp.textContent = ""
+            }
+
+            function render(state) {
+                if (state.status === "unpaired")
+                    return note(
+                        "Not paired yet.\nRun the install command from Telegram → Settings → Linked devices."
+                    )
+                if (state.status === "loading") return note("Loading...")
+                if (state.status === "error") return note(state.message)
+                if (!state.keys.length) return note("No API keys on this account yet.")
+
+                stamp.textContent = new Date(state.fetchedAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                })
+                body.innerHTML = state.keys
+                    .map((k) => {
+                        const known = k.usedPct !== null
+                        const pct = known ? Math.min(100, Math.round(k.usedPct)) : 0
+                        const label = known
+                            ? pct + "%"
+                            : k.state === "error"
+                              ? "—"
+                              : "n/a"
+                        const sub = known
+                            ? k.resetAt
+                                ? resetLabel(k.resetAt)
+                                : ""
+                            : k.state === "error"
+                              ? "couldn't reach Z.ai"
+                              : "no quota on this key"
+                        return `
+                        <div class="key">
+                          <div class="row">
+                            <span class="name">${esc(k.name)}</span>
+                            <span class="pct">${label}</span>
+                          </div>
+                          <div class="bar"><div class="fill" style="width:${pct}%;background:${known ? tint(pct) : "var(--muted)"}"></div></div>
+                          ${sub ? `<div class="reset">${esc(sub)}</div>` : ""}
+                        </div>`
+                    })
+                    .join("")
+            }
+
+            document.getElementById("refresh").onclick = () => {
+                note("Loading...")
+                invoke("refresh")
+            }
+            document.getElementById("open").onclick = () => invoke("open_dashboard")
+
+            // Rust pushes every state change; this is just the initial paint.
+            listen("state", (e) => render(e.payload))
+            invoke("tray_state").then(render)
+        </script>
+    </body>
+</html>
