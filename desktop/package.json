@@ -4,6 +4,8 @@
     "private": true,
     "description": "Windows tray client for the Z.ai quota dashboard",
     "scripts": {
+        "//": "`tauri` is required by tauri-apps/tauri-action, which shells out to `npm run tauri build`.",
+        "tauri": "tauri",
         "dev": "tauri dev",
         "build": "tauri build",
         "icons": "tauri icon ../app/icon.png"
