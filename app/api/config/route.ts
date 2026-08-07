@@ -1,10 +1,10 @@
 import type { NextRequest } from "next/server"
-import { authenticateTelegramRequest } from "@/lib/api-auth"
+import { authenticateRequest } from "@/lib/api-auth"
 
 // Per-user config blob storage backed by the D1 `user_config` table. Identity
-// comes from a server-validated Telegram initData blob (header
-// `x-telegram-init-data`), exactly like /api/keys — never from the client
-// asserting its own id. See lib/api-auth.ts.
+// comes from a server-validated Telegram initData blob or a paired device's
+// bearer token, exactly like /api/keys — never from the client asserting its
+// own id. See lib/api-auth.ts.
 //
 // Endpoints (all scoped to the validated tg_user_id):
 //   GET /api/config?namespace=alerts  -> { value: <parsed JSON> | null }
@@ -14,7 +14,7 @@ import { authenticateTelegramRequest } from "@/lib/api-auth"
 // the `alerts` namespace out-of-band to learn which thresholds each user enabled.
 
 export async function GET(req: NextRequest) {
-    const auth = await authenticateTelegramRequest(req)
+    const auth = await authenticateRequest(req)
     if ("error" in auth) return auth.error
 
     const namespace = req.nextUrl.searchParams.get("namespace")
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-    const auth = await authenticateTelegramRequest(req)
+    const auth = await authenticateRequest(req)
     if ("error" in auth) return auth.error
 
     let body: unknown

@@ -1,10 +1,10 @@
 import type { NextRequest } from "next/server"
-import { authenticateTelegramRequest } from "@/lib/api-auth"
+import { authenticateRequest } from "@/lib/api-auth"
 import { normalizeApiKey, type ApiKey } from "@/lib/types"
 
-// Per-user API key storage backed by D1. Identity comes from a server-validated
-// Telegram initData blob (header `x-telegram-init-data`) — never from the client
-// asserting its own id. See lib/telegram-auth.ts.
+// Per-user API key storage backed by D1. Identity comes from either a
+// server-validated Telegram initData blob or a paired device's bearer token —
+// never from the client asserting its own id. See lib/api-auth.ts.
 //
 // Endpoints (all scoped to the validated tg_user_id):
 //   GET    /api/keys           -> { keys: ApiKey[] }
@@ -73,7 +73,7 @@ function upsertStatement(
 }
 
 export async function GET(req: NextRequest) {
-    const auth = await authenticateTelegramRequest(req)
+    const auth = await authenticateRequest(req)
     if ("error" in auth) return auth.error
 
     const { results } = await auth.db
@@ -91,7 +91,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    const auth = await authenticateTelegramRequest(req)
+    const auth = await authenticateRequest(req)
     if ("error" in auth) return auth.error
 
     let body: unknown
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-    const auth = await authenticateTelegramRequest(req)
+    const auth = await authenticateRequest(req)
     if ("error" in auth) return auth.error
 
     const id = req.nextUrl.searchParams.get("id")
@@ -131,7 +131,7 @@ export async function DELETE(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-    const auth = await authenticateTelegramRequest(req)
+    const auth = await authenticateRequest(req)
     if ("error" in auth) return auth.error
 
     let body: unknown
