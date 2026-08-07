@@ -1,0 +1,7 @@
+{
+    "$schema": "../gen/schemas/desktop-schema.json",
+    "identifier": "default",
+    "description": "What the popover window is allowed to do. It only reads state and asks for a refresh — everything else (tray, autostart, opening the browser) is driven from Rust, so no plugin permissions are granted here.",
+    "windows": ["popover"],
+    "permissions": ["core:default"]
+}
