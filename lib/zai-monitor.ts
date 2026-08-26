@@ -1,4 +1,5 @@
 const PROXY_BASE = "/api/zai"
+const MONITOR_DIRECT_BASE = "https://api.z.ai/api"
 
 export type QuotaLimit = {
     type: "TOKENS_LIMIT" | "TIME_LIMIT" | string
@@ -51,6 +52,35 @@ type Envelope<T> = {
     data: T
 }
 
+class TransportError extends Error {
+    constructor(message: string) {
+        super(message)
+        this.name = "TransportError"
+    }
+}
+
+async function readEnvelope<T>(res: Response, path: string): Promise<T> {
+    if (!res.ok) {
+        throw new TransportError(`${path} failed: HTTP ${res.status}`)
+    }
+    const contentType = res.headers.get("content-type") ?? ""
+    if (!contentType.includes("json")) {
+        throw new TransportError(
+            `${path} returned non-JSON (${contentType || "untyped"})`
+        )
+    }
+    let body: Envelope<T>
+    try {
+        body = (await res.json()) as Envelope<T>
+    } catch {
+        throw new TransportError(`${path} returned malformed JSON`)
+    }
+    if (!body.success) {
+        throw new Error(body.msg || `${path} error code ${body.code}`)
+    }
+    return body.data
+}
+
 async function monitorGet<T>(path: string, key: string): Promise<T> {
     const res = await fetch(`${PROXY_BASE}/${path}`, {
         headers: {
@@ -59,14 +89,22 @@ async function monitorGet<T>(path: string, key: string): Promise<T> {
         },
         cache: "no-store",
     })
-    if (!res.ok) {
-        throw new Error(`${path} failed: HTTP ${res.status}`)
+    return readEnvelope<T>(res, path)
+}
+
+async function monitorGetDirect<T>(path: string, key: string): Promise<T> {
+    let res: Response
+    try {
+        res = await fetch(`${MONITOR_DIRECT_BASE}/${path}`, {
+            headers: { authorization: `Bearer ${key}` },
+            cache: "no-store",
+        })
+    } catch (err) {
+        throw new TransportError(
+            `${path} direct fetch failed: ${(err as Error | null)?.message ?? err}`
+        )
     }
-    const body = (await res.json()) as Envelope<T>
-    if (!body.success) {
-        throw new Error(body.msg || `${path} error code ${body.code}`)
-    }
-    return body.data
+    return readEnvelope<T>(res, path)
 }
 
 export function fetchQuotaLimit(key: string): Promise<QuotaResponse> {
@@ -88,5 +126,9 @@ export function fetchModelUsage(
     const q = `?startTime=${encodeURIComponent(
         formatDateTime(start)
     )}&endTime=${encodeURIComponent(formatDateTime(end))}`
-    return monitorGet<ModelUsageResponse>(`monitor/usage/model-usage${q}`, key)
+    const path = `monitor/usage/model-usage${q}`
+    return monitorGetDirect<ModelUsageResponse>(path, key).catch((err) => {
+        if (!(err instanceof TransportError)) throw err
+        return monitorGet<ModelUsageResponse>(path, key)
+    })
 }

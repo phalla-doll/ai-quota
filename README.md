@@ -46,7 +46,7 @@ Single Next.js app. The only server code is a CORS-bypass proxy plus a small aut
 - `https://api.z.ai/api/coding/paas/v4` — Coding Plan inference
 - `https://api.z.ai/api` — monitor endpoints (`/monitor/usage/quota/limit`, `/monitor/usage/model-usage?startTime=…&endTime=…`)
 
-It never reads or stores the key body — only forwards the header.
+It never reads or stores the key body — only forwards the header. Note the browser no longer routes `model-usage` through this proxy (see [How usage numbers are sourced](#how-usage-numbers-are-sourced)); the proxy still carries inference and `quota/limit`.
 
 **`app/api/keys/route.ts`** — the API-key sync layer, backed by Cloudflare **D1** (binding `DB`, schema in `migrations/`). Every row is scoped to a user id the *server* established, never one the client claims. `GET` lists; `POST`/`DELETE` are per-key (so a stale client can only touch the row it names); `PUT` is a non-destructive bulk upsert used only by the one-time migration.
 
@@ -89,6 +89,8 @@ This project uses:
 - `GET /api/monitor/usage/model-usage?startTime=YYYY-MM-DD HH:MM:SS&endTime=…` → per-day token & call counts, `modelSummaryList`, `modelDataList`
 
 Because these aren't in the public reference, they can change without warning. If the cards ever surface a 4xx/5xx error, that's the first thing to check.
+
+They're also fronted by an Aliyun WAF that discriminates by origin: since August 2026 it answers `model-usage` requests coming from **Cloudflare Worker egress IPs** with a `405` anti-bot page (while `quota/limit` and the inference endpoints pass). Since this app deploys *as* a Worker, fetching through its own proxy made every key's model-usage call fail at once. So `lib/zai-monitor.ts` fetches `model-usage` **straight from the browser** to `api.z.ai` — Z.ai reflects any `Origin` in its CORS headers, so the cross-origin call just works — and falls back to the proxy only when the direct attempt fails at the transport level (non-JSON body, HTTP error status, network failure). A JSON envelope answer (e.g. an expired token) is definitive and not retried.
 
 ---
 
@@ -204,6 +206,7 @@ Details worth knowing:
 ## Known limits
 
 - The monitor endpoints aren't officially documented. Field names could move under your feet.
+- The browser-direct `model-usage` fetch relies on Z.ai reflecting the app's `Origin` in its CORS responses. If that ever closes, the proxy fallback takes over — and runs straight back into the Worker-egress WAF block described above (Usage/Overview charts would error while quota cards keep working).
 - Pay-as-you-go (non-Coding Plan) keys may not return useful monitor data. Set a budget on the key to fall back to Playground-tracked $ instead.
 - Playground cost is computed from a hand-maintained price table in `lib/zai-pricing.ts`. Treat as approximate.
 - Keys are stored in plaintext (localStorage cache, the D1 `key` column, and `%APPDATA%\ai-quota\config.json` on a paired Windows device). D1 rows are scoped per user but not encrypted at rest — keep the bot token and database private.
