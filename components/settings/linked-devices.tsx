@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { toast } from "sonner"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
@@ -23,6 +24,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useTelegram } from "@/components/providers/telegram-provider"
+import { useDeviceSession, useUnlinkBrowser } from "@/hooks/use-auth-credential"
 import {
     useDevices,
     usePairingCode,
@@ -32,22 +34,20 @@ import {
 import type { Device } from "@/lib/types"
 
 // "Linked devices" — the Mini App half of device pairing. Generates a code the
-// user types into a desktop client, and lists/revokes what's already paired.
-// The desktop client trades that code for a bearer token it keeps; see
-// lib/device-auth.ts and app/api/devices/.
+// user enters on a client (the Windows tray app, or a browser/PWA at /pair),
+// and lists/revokes what's already paired. The client trades that code for a
+// bearer token it keeps; see lib/device-auth.ts and app/api/devices/.
+//
+// Minting and revoking are Telegram-only by design (lib/api-auth.ts), so a
+// paired browser can't see this list. It gets BrowserSessionCard instead: what
+// this browser is linked as, and a local unlink.
 
 export function LinkedDevices() {
     const { inTelegram } = useTelegram()
     const { data: devices, isLoading } = useDevices()
 
     if (!inTelegram) {
-        return (
-            <Card className="py-0 shadow-none">
-                <CardContent className="px-5 py-6 text-center text-sm text-muted-foreground">
-                    Open the app inside Telegram to link a device.
-                </CardContent>
-            </Card>
-        )
+        return <BrowserSessionCard />
     }
 
     return (
@@ -118,6 +118,12 @@ function PairDrawer() {
     const installCommand = issued
         ? `$env:AI_QUOTA_CODE="${issued.code}"; irm ${window.location.origin}/install.ps1 | iex`
         : ""
+    // Same code, redeemed in a browser instead of PowerShell. Carrying it in
+    // the query string means the user only has to move one thing between
+    // devices, and /pair still accepts it typed by hand.
+    const browserLink = issued
+        ? `${window.location.origin}/pair?code=${issued.code}`
+        : ""
 
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
@@ -152,27 +158,29 @@ function PairDrawer() {
                 </div>
 
                 {issued ? (
-                    <div className="px-4 pt-4 pb-2 text-left">
-                        <p className="px-1 pb-1.5 text-xs text-muted-foreground">
-                            Or paste this into Windows PowerShell — it pairs and
-                            installs in one go.
-                        </p>
-                        <button
-                            type="button"
-                            onClick={() =>
-                                copy(installCommand, "Install command")
-                            }
-                            className="flex w-full items-center gap-2 rounded-2xl border border-input px-4 py-3 text-left"
-                        >
-                            <code className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">
-                                {installCommand}
-                            </code>
-                            <HugeiconsIcon
-                                icon={Copy01Icon}
-                                size={16}
-                                className="shrink-0 text-muted-foreground"
+                    <div className="space-y-4 px-4 pt-4 pb-2 text-left">
+                        <div>
+                            <p className="px-1 pb-1.5 text-xs text-muted-foreground">
+                                For a browser or installed web app — open this
+                                link there, or type the code at /pair.
+                            </p>
+                            <CopyRow
+                                value={browserLink}
+                                label="Link"
+                                onCopy={copy}
                             />
-                        </button>
+                        </div>
+                        <div>
+                            <p className="px-1 pb-1.5 text-xs text-muted-foreground">
+                                For Windows — paste this into PowerShell and it
+                                pairs and installs in one go.
+                            </p>
+                            <CopyRow
+                                value={installCommand}
+                                label="Install command"
+                                onCopy={copy}
+                            />
+                        </div>
                     </div>
                 ) : null}
 
@@ -209,6 +217,122 @@ function PairDrawer() {
                 </DrawerFooter>
             </DrawerContent>
         </Drawer>
+    )
+}
+
+function CopyRow({
+    value,
+    label,
+    onCopy,
+}: {
+    value: string
+    label: string
+    onCopy: (text: string, label: string) => void
+}) {
+    return (
+        <button
+            type="button"
+            onClick={() => onCopy(value, label)}
+            className="flex w-full items-center gap-2 rounded-2xl border border-input px-4 py-3 text-left"
+        >
+            <code className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">
+                {value}
+            </code>
+            <HugeiconsIcon
+                icon={Copy01Icon}
+                size={16}
+                className="shrink-0 text-muted-foreground"
+            />
+        </button>
+    )
+}
+
+// What this section shows outside Telegram. Unlinking here only forgets the
+// token locally — a real revoke needs the Mini App, which is the whole point of
+// the credential split, so say so rather than implying the device is gone.
+function BrowserSessionCard() {
+    const session = useDeviceSession()
+    const unlink = useUnlinkBrowser()
+    const [confirmUnlink, setConfirmUnlink] = React.useState(false)
+
+    if (!session) {
+        return (
+            <Card className="py-0 shadow-none">
+                <CardContent className="space-y-3 px-5 py-6 text-center">
+                    <p className="text-sm text-muted-foreground">
+                        This browser isn&rsquo;t linked. Generate a code in
+                        Telegram, then enter it here to sync your keys.
+                    </p>
+                    <Button size="xl" className="w-full" asChild>
+                        <Link href="/pair">
+                            <HugeiconsIcon icon={PlusSignIcon} size={18} />
+                            Link this browser
+                        </Link>
+                    </Button>
+                </CardContent>
+            </Card>
+        )
+    }
+
+    return (
+        <Card className="py-0 shadow-none">
+            <CardContent className="px-5 py-2">
+                <div className="flex items-center gap-3 py-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <HugeiconsIcon icon={ComputerIcon} size={18} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium">
+                            {session.name}
+                        </div>
+                        <div className="truncate text-xs text-muted-foreground">
+                            This browser · linked{" "}
+                            {formatRelative(session.pairedAt)}
+                        </div>
+                    </div>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground"
+                        aria-label="Unlink this browser"
+                        onClick={() => setConfirmUnlink(true)}
+                    >
+                        <HugeiconsIcon icon={Delete01Icon} size={18} />
+                    </Button>
+                </div>
+            </CardContent>
+
+            <Drawer open={confirmUnlink} onOpenChange={setConfirmUnlink}>
+                <DrawerContent>
+                    <DrawerHeader>
+                        <DrawerTitle>Unlink this browser?</DrawerTitle>
+                        <DrawerDescription>
+                            This browser forgets the token and its cached copy
+                            of your keys. The device stays listed in Telegram
+                            until you revoke it there.
+                        </DrawerDescription>
+                    </DrawerHeader>
+                    <DrawerFooter>
+                        <Button
+                            size="xl"
+                            variant="destructive"
+                            onClick={() => {
+                                unlink()
+                                setConfirmUnlink(false)
+                                toast.success("Unlinked from this browser")
+                            }}
+                        >
+                            Unlink
+                        </Button>
+                        <DrawerClose asChild>
+                            <Button size="xl" variant="outline">
+                                Cancel
+                            </Button>
+                        </DrawerClose>
+                    </DrawerFooter>
+                </DrawerContent>
+            </Drawer>
+        </Card>
     )
 }
 

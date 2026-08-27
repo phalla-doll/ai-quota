@@ -10,10 +10,12 @@ import { SettingsSection } from "@/components/settings/section"
 import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { useTelegram } from "@/components/providers/telegram-provider"
+import { useDeviceSession } from "@/hooks/use-auth-credential"
 
 export default function SettingsPage() {
     const { resolvedTheme, setTheme } = useTheme()
     const tg = useTelegram()
+    const deviceSession = useDeviceSession()
     const isDark = resolvedTheme === "dark"
 
     return (
@@ -23,7 +25,7 @@ export default function SettingsPage() {
             <div className="space-y-5 px-4 pt-3">
                 <SettingsSection
                     title="API keys"
-                    description="Stored in this browser only. Validated against Z.ai on save. Coding Plan keys also unlock real quota numbers on the dashboard."
+                    description="Synced to your account and cached in this browser. Validated against Z.ai on save. Coding Plan keys also unlock real quota numbers on the dashboard."
                 >
                     <div className="space-y-3">
                         <AddKeyDrawer />
@@ -40,7 +42,7 @@ export default function SettingsPage() {
 
                 <SettingsSection
                     title="Linked devices"
-                    description="Pair a desktop client with a one-time code. It gets the same keys as this account, and you can revoke it any time."
+                    description="Pair a browser, an installed web app, or a desktop client with a one-time code. Each gets the same keys as this account, and you can revoke any of them here."
                 >
                     <LinkedDevices />
                 </SettingsSection>
@@ -78,6 +80,18 @@ export default function SettingsPage() {
                                         : "Not in Telegram"}
                                 </span>
                             </div>
+                            {!tg.inTelegram ? (
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">
+                                        This browser
+                                    </span>
+                                    <span className="font-medium">
+                                        {deviceSession
+                                            ? "Linked"
+                                            : "Not linked"}
+                                    </span>
+                                </div>
+                            ) : null}
                             {tg.user ? (
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">
