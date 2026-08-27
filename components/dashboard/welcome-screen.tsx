@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
     ChartLineData01Icon,
@@ -11,6 +12,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { AppLogo } from "@/components/brand/app-logo"
 import { AddKeyDrawer } from "@/components/settings/add-key-drawer"
+import { useTelegram } from "@/components/providers/telegram-provider"
+import { useDeviceSession } from "@/hooks/use-auth-credential"
 
 const features = [
     {
@@ -32,6 +35,14 @@ const features = [
 
 export function WelcomeScreen() {
     const [open, setOpen] = React.useState(false)
+    const { inTelegram } = useTelegram()
+    const deviceSession = useDeviceSession()
+
+    // An unpaired browser reaching an empty dashboard usually already has keys
+    // — they're just sitting in the Telegram account this browser can't see
+    // yet. Offer pairing before asking them to re-enter a key by hand.
+    const offerPairing = !inTelegram && !deviceSession
+
     return (
         <div className="flex min-h-svh flex-col px-6 pt-[max(env(safe-area-inset-top),2.5rem)] pb-[max(env(safe-area-inset-bottom),1.5rem)]">
             <div className="flex flex-1 flex-col items-center justify-center text-center">
@@ -73,9 +84,26 @@ export function WelcomeScreen() {
                     <HugeiconsIcon icon={PlusSignIcon} size={18} />
                     Add API key
                 </Button>
-                <p className="text-center text-[11px] text-muted-foreground">
-                    Stored on this device only.
-                </p>
+                {offerPairing ? (
+                    <>
+                        <Button
+                            size="xl"
+                            variant="outline"
+                            className="w-full"
+                            asChild
+                        >
+                            <Link href="/pair">Link this browser instead</Link>
+                        </Button>
+                        <p className="text-center text-[11px] text-muted-foreground">
+                            Already added keys in Telegram? Pair with a one-time
+                            code and they sync here.
+                        </p>
+                    </>
+                ) : (
+                    <p className="text-center text-[11px] text-muted-foreground">
+                        Synced to your account, cached on this device.
+                    </p>
+                )}
             </div>
 
             <AddKeyDrawer
