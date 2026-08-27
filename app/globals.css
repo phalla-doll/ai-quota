@@ -5,6 +5,12 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+    /* The app column. Everything the user sees lives in a phone-width strip —
+       the page itself, the bottom nav, and any bottom drawer — so that an
+       installed PWA or a desktop browser window looks like the Mini App it was
+       designed as instead of stretching chrome across the whole screen.
+       Tailwind v4 turns this into `max-w-app`; don't hardcode 28rem again. */
+    --container-app: 28rem;
     --font-heading: var(--font-sans);
     --font-sans: ui-rounded, "SF Pro Rounded", var(--font-sans-custom),
         system-ui, sans-serif;

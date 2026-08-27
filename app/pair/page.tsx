@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function PairPage() {
     return (
-        <div className="relative mx-auto min-h-svh max-w-md bg-background">
+        <div className="relative mx-auto min-h-svh max-w-app bg-background">
             {/* useSearchParams (for the ?code= deep link) needs a boundary. */}
             <React.Suspense fallback={<div className="min-h-svh" />}>
                 <PairScreen />

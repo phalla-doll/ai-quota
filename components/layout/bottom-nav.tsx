@@ -25,11 +25,11 @@ export function BottomNav() {
     return (
         <nav
             className={cn(
-                "fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80",
+                "fixed inset-x-0 bottom-0 z-40 mx-auto max-w-app border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80",
                 "pb-[max(env(safe-area-inset-bottom),0.5rem)]"
             )}
         >
-            <ul className="mx-auto flex max-w-md items-stretch justify-between px-2 pt-2">
+            <ul className="flex items-stretch justify-between px-2 pt-2">
                 {items.map((item) => {
                     const active =
                         item.href === "/"
