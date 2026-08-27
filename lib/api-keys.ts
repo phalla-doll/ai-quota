@@ -1,5 +1,10 @@
 import { toast } from "sonner"
 import { normalizeApiKey, type ApiKey } from "@/lib/types"
+import {
+    credentialHeaders,
+    credentialMarker,
+    type AuthCredential,
+} from "@/lib/auth-credential"
 
 // Client-side data access for API keys: the localStorage cache and the
 // authenticated D1-backed endpoints. The React bindings live in
@@ -8,13 +13,13 @@ import { normalizeApiKey, type ApiKey } from "@/lib/types"
 // and network shapes are defined once.
 
 const STORAGE_KEY = "zai-tracker-keys"
-const INIT_DATA_HEADER = "x-telegram-init-data"
 
-// React Query key. The auth marker makes the query re-run when Telegram
-// resolves `initDataRaw` (null on first paint), so the server sync actually
-// fires on open instead of being stuck on the cached local-only result.
-export function apiKeysQueryKey(initDataRaw: string | null) {
-    return ["api-keys", initDataRaw ? "tg" : "local"] as const
+// React Query key. The auth marker makes the query re-run once a credential
+// resolves (null on first paint, whether it turns out to be Telegram initData
+// or a paired browser's device token), so the server sync actually fires on
+// open instead of being stuck on the cached local-only result.
+export function apiKeysQueryKey(cred: AuthCredential | null) {
+    return ["api-keys", credentialMarker(cred)] as const
 }
 
 // ── localStorage cache ────────────────────────────────────────────────────────
@@ -38,16 +43,21 @@ export function saveKeys(keys: ApiKey[]) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(keys))
 }
 
-// ── server sync (D1) ──────────────────────────────────────────────────────────
-
-function authHeaders(initDataRaw: string, extra?: Record<string, string>) {
-    return { [INIT_DATA_HEADER]: initDataRaw, ...extra }
+// Drop the cache entirely. Used when a browser unlinks: the cache holds every
+// key that synced down from the account, in plaintext, so leaving it behind
+// would make "unlink" a no-op from the user's side — the keys stay listed on a
+// machine they just said isn't theirs.
+export function clearKeys() {
+    if (typeof window === "undefined") return
+    localStorage.removeItem(STORAGE_KEY)
 }
 
+// ── server sync (D1) ──────────────────────────────────────────────────────────
+
 export async function fetchKeysFromServer(
-    initDataRaw: string
+    cred: AuthCredential
 ): Promise<ApiKey[]> {
-    const res = await fetch("/api/keys", { headers: authHeaders(initDataRaw) })
+    const res = await fetch("/api/keys", { headers: credentialHeaders(cred) })
     if (!res.ok) throw new Error(`GET /api/keys ${res.status}`)
     const data = (await res.json()) as { keys: ApiKey[] }
     return data.keys
@@ -57,10 +67,10 @@ export async function fetchKeysFromServer(
 
 // Upsert a single key — used for add and rename. Touches only that row, so a
 // stale local cache can never wipe the user's other server-side keys.
-export async function upsertKeyOnServer(initDataRaw: string, key: ApiKey) {
+export async function upsertKeyOnServer(cred: AuthCredential, key: ApiKey) {
     const res = await fetch("/api/keys", {
         method: "POST",
-        headers: authHeaders(initDataRaw, {
+        headers: credentialHeaders(cred, {
             "content-type": "application/json",
         }),
         body: JSON.stringify({ key }),
@@ -69,10 +79,10 @@ export async function upsertKeyOnServer(initDataRaw: string, key: ApiKey) {
 }
 
 // Delete a single key by id.
-export async function deleteKeyOnServer(initDataRaw: string, id: string) {
+export async function deleteKeyOnServer(cred: AuthCredential, id: string) {
     const res = await fetch(`/api/keys?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
-        headers: authHeaders(initDataRaw),
+        headers: credentialHeaders(cred),
     })
     if (!res.ok) throw new Error(`DELETE /api/keys ${res.status}`)
 }
@@ -80,12 +90,12 @@ export async function deleteKeyOnServer(initDataRaw: string, id: string) {
 // Bulk, non-destructive upsert — used only by the one-time migration to seed an
 // empty D1 from localStorage. Returns the canonical stored list.
 export async function bulkUpsertKeysOnServer(
-    initDataRaw: string,
+    cred: AuthCredential,
     keys: ApiKey[]
 ): Promise<ApiKey[]> {
     const res = await fetch("/api/keys", {
         method: "PUT",
-        headers: authHeaders(initDataRaw, {
+        headers: credentialHeaders(cred, {
             "content-type": "application/json",
         }),
         body: JSON.stringify({ keys }),
@@ -100,9 +110,9 @@ export async function bulkUpsertKeysOnServer(
 export function notifyKeysMigrated(count: number) {
     if (typeof window === "undefined") return
     const label = count === 1 ? "key" : "keys"
-    toast.success(`${count} ${label} synced to your Telegram account`, {
+    toast.success(`${count} ${label} synced to your account`, {
         description:
-            "You can now access them from any device signed in to this Telegram account.",
+            "You can now reach them from Telegram and from any browser or device you link.",
         duration: 8000,
     })
 }

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { useTelegram } from "@/components/providers/telegram-provider"
+import { useAuthCredential } from "@/hooks/use-auth-credential"
 import {
     apiKeysQueryKey,
     loadKeys,
@@ -17,8 +17,13 @@ import type { ApiKey } from "@/lib/types"
 // mount effect (not inside a query function), so the side effects — a network
 // push, a localStorage write, and a toast — happen in a predictable, single
 // place and can't be re-fired by query retries or StrictMode double-renders.
+//
+// Either credential triggers it: someone who used the site logged-out in a
+// browser and then paired it wants those local keys seeded up just as much as a
+// first-time Mini App user does. It only ever seeds an *empty* account, so a
+// browser paired after the fact can't overwrite what Telegram already stored.
 export function KeyMigration() {
-    const { ready, initDataRaw } = useTelegram()
+    const { credential, ready } = useAuthCredential()
     const qc = useQueryClient()
 
     // Snapshot the local keys synchronously on first render, BEFORE the
@@ -29,22 +34,19 @@ export function KeyMigration() {
     const ran = React.useRef(false)
 
     React.useEffect(() => {
-        if (!ready || !initDataRaw || ran.current) return
+        if (!ready || !credential || ran.current) return
         ran.current = true
 
         const local = snapshot.current ?? []
         if (local.length === 0) return // nothing to migrate
         ;(async () => {
             try {
-                const server = await fetchKeysFromServer(initDataRaw)
+                const server = await fetchKeysFromServer(credential)
                 // Only seed an empty account; never overwrite existing D1 keys.
                 if (server.length > 0) return
-                const migrated = await bulkUpsertKeysOnServer(
-                    initDataRaw,
-                    local
-                )
+                const migrated = await bulkUpsertKeysOnServer(credential, local)
                 saveKeys(migrated)
-                qc.setQueryData(apiKeysQueryKey(initDataRaw), migrated)
+                qc.setQueryData(apiKeysQueryKey(credential), migrated)
                 notifyKeysMigrated(migrated.length)
             } catch {
                 // Failed to reach the server — leave local intact and let the
@@ -52,7 +54,7 @@ export function KeyMigration() {
                 ran.current = false
             }
         })()
-    }, [ready, initDataRaw, qc])
+    }, [ready, credential, qc])
 
     return null
 }
