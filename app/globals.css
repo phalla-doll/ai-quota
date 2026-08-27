@@ -120,6 +120,17 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    /* Mobile-first: phones use overlay scrollbars that are invisible at rest,
+       but desktop browsers and the Windows webview paint a permanent gutter
+       that reads as chrome inside a Mini App-shaped layout. Hide the bar
+       everywhere — every scroll container, not just the page — while leaving
+       the scrolling itself untouched. */
+    scrollbar-width: none;
+    }
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
     }
   body {
     @apply bg-background text-foreground;
