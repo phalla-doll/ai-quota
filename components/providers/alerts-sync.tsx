@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { useAlertsStore } from "@/lib/stores/alerts-store"
-import { useTelegram } from "@/components/providers/telegram-provider"
+import { useAuthCredential } from "@/hooks/use-auth-credential"
+import { credentialHeaders, type AuthCredential } from "@/lib/auth-credential"
 
 // Pushes the user's alert-threshold settings to D1 so the standalone alerts cron
 // worker (../../alerts-cron/) can read which thresholds they enabled. The store
@@ -13,11 +14,9 @@ import { useTelegram } from "@/components/providers/telegram-provider"
 // cron worker runs serverside with no browser, so without this it can only
 // render reset times in UTC; it formats reset times in this zone (UTC fallback).
 //
-// Outside Telegram (no initDataRaw, e.g. plain `next dev`) there is no signed
-// identity to scope the row to, so the sync is skipped — the store works as
-// before. Mirrors the key-sync wiring in hooks/use-api-keys.ts.
-
-const INIT_DATA_HEADER = "x-telegram-init-data"
+// With no credential — plain `next dev`, or a browser that hasn't been paired —
+// there is no identity to scope the row to, so the sync is skipped and the
+// store works as before. Mirrors the key-sync wiring in hooks/use-api-keys.ts.
 
 // The device's IANA timezone, or undefined if the runtime can't resolve one
 // (worker then falls back to UTC).
@@ -30,16 +29,15 @@ function resolveTimezone(): string | undefined {
 }
 
 async function pushAlertsConfig(
-    initDataRaw: string,
+    cred: AuthCredential,
     enabled: Record<number, boolean>,
     timezone: string | undefined
 ) {
     const res = await fetch("/api/config", {
         method: "PUT",
-        headers: {
-            [INIT_DATA_HEADER]: initDataRaw,
+        headers: credentialHeaders(cred, {
             "content-type": "application/json",
-        },
+        }),
         body: JSON.stringify({
             namespace: "alerts",
             value: { enabled, timezone },
@@ -49,7 +47,7 @@ async function pushAlertsConfig(
 }
 
 export function AlertsSync() {
-    const { ready, initDataRaw } = useTelegram()
+    const { credential, ready } = useAuthCredential()
     const enabled = useAlertsStore((s) => s.enabled)
 
     const timezone = resolveTimezone()
@@ -60,13 +58,16 @@ export function AlertsSync() {
     const serialized = JSON.stringify({ enabled, timezone })
 
     React.useEffect(() => {
-        if (!ready || !initDataRaw) return
-        pushAlertsConfig(initDataRaw, enabled, timezone).catch(() => {
+        if (!ready || !credential) return
+        pushAlertsConfig(credential, enabled, timezone).catch(() => {
             // Best-effort: a failed push just means the worker uses the last
             // synced (or default) thresholds; it retries on the next change.
         })
+        // `credential` is memo-stable in useAuthCredential, so depending on it
+        // directly re-pushes when the *token* changes — which a marker string
+        // ("device") would miss after an unlink-and-repair in the same tab.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [ready, initDataRaw, serialized])
+    }, [ready, credential, serialized])
 
     return null
 }
