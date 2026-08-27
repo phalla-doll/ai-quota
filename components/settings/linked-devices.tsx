@@ -10,6 +10,7 @@ import {
     Delete01Icon,
     Loading03Icon,
     PlusSignIcon,
+    Tick02Icon,
 } from "@hugeicons/core-free-icons"
 import {
     Drawer,
@@ -32,6 +33,7 @@ import {
     type PairingCode,
 } from "@/hooks/use-devices"
 import type { Device } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 // "Linked devices" — the Mini App half of device pairing. Generates a code the
 // user enters on a client (the Windows tray app, or a browser/PWA at /pair),
@@ -104,12 +106,14 @@ function PairDrawer() {
         else if (!issued) void generate()
     }
 
-    async function copy(text: string, label: string) {
+    async function copy(text: string, label: string): Promise<boolean> {
         try {
             await navigator.clipboard.writeText(text)
             toast.success(`${label} copied`)
+            return true
         } catch {
             toast.error("Copy failed")
+            return false
         }
     }
 
@@ -220,6 +224,9 @@ function PairDrawer() {
     )
 }
 
+// How long the tick stays before the row goes back to offering a copy.
+const COPIED_MS = 1600
+
 function CopyRow({
     value,
     label,
@@ -227,21 +234,47 @@ function CopyRow({
 }: {
     value: string
     label: string
-    onCopy: (text: string, label: string) => void
+    onCopy: (text: string, label: string) => Promise<boolean>
 }) {
+    const [copied, setCopied] = React.useState(false)
+    const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    React.useEffect(
+        () => () => {
+            if (timer.current) clearTimeout(timer.current)
+        },
+        []
+    )
+
+    // The value is truncated to fit, so the toast is the only thing confirming
+    // *which* row was hit — the tick confirms it on the row the thumb is still
+    // on. Only flips when the write actually succeeded.
+    async function handleCopy() {
+        if (!(await onCopy(value, label))) return
+        setCopied(true)
+        if (timer.current) clearTimeout(timer.current)
+        timer.current = setTimeout(() => setCopied(false), COPIED_MS)
+    }
+
     return (
         <button
             type="button"
-            onClick={() => onCopy(value, label)}
+            onClick={handleCopy}
+            aria-label={
+                copied ? `${label} copied` : `Copy ${label.toLowerCase()}`
+            }
             className="flex w-full items-center gap-2 rounded-2xl border border-input px-4 py-3 text-left"
         >
             <code className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">
                 {value}
             </code>
             <HugeiconsIcon
-                icon={Copy01Icon}
+                icon={copied ? Tick02Icon : Copy01Icon}
                 size={16}
-                className="shrink-0 text-muted-foreground"
+                className={cn(
+                    "shrink-0 transition-colors",
+                    copied ? "text-primary" : "text-muted-foreground"
+                )}
             />
         </button>
     )
