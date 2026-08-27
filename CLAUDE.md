@@ -41,14 +41,18 @@ The monitor endpoints aren't in Z.ai's public reference and field names can chan
 
 Use `authenticateRequest` for data routes (both credentials) and `authenticateTelegramRequest` for anything managing devices. That split is load-bearing: a leaked device token can read and write keys, but cannot mint pairing codes or revoke devices — so it can't entrench itself.
 
-### Device pairing (`/api/devices/*`, `/install.ps1`)
-How a non-Telegram client — the Windows tray app, any future desktop/native widget — gets the same keys. The Mini App mints a short code (Settings › Linked devices, `components/settings/linked-devices.tsx`), the user enters it on the device, and the device exchanges it **once** for a long-lived bearer token:
+### Device pairing (`/api/devices/*`, `/pair`, `/install.ps1`)
+How a non-Telegram client — a plain browser or installed PWA, the Windows tray app, any future desktop/native widget — gets the same keys. The Mini App mints a short code (Settings › Linked devices, `components/settings/linked-devices.tsx`), the user enters it on the device, and the device exchanges it **once** for a long-lived bearer token:
 
 - `POST /api/devices/pair` (Telegram-only) → `{ code, expiresAt }`, 10-min TTL, one live code per user — minting a new one deletes the old
 - `POST /api/devices/claim` (**unauthenticated** — the code is the proof) → `{ token, deviceId, name }`; claim + expiry are checked inside the `UPDATE`, so racing clients can't both win
 - `GET`/`DELETE /api/devices` (Telegram-only) → list / revoke
 
+`app/pair/page.tsx` (+ `components/pair/pair-screen.tsx`) is the browser's redemption screen — the counterpart to `/install.ps1`, redeeming the same code by hand instead of by PowerShell. It is deliberately **outside** the `(app)` route group: someone landing there has no keys yet, so the key-gated `AppShell` and tab bar would have nothing to render. The pairing drawer offers a `/pair?code=…` deep link so only one thing has to move between devices; the field still accepts a typed code. The claimed token lands in `lib/stores/device-session-store.ts` (localStorage `zai-tracker-device`), and `lib/device-pairing.ts` does the claim + names the device from the UA (an installed PWA is labelled as such).
+
 Codes and tokens live in `lib/device-auth.ts`. The code is 8 chars of an ambiguity-free base32 (no I/L/O/U) and is normalized before hashing, so a user can type it lowercase, dashed, or with O-for-0; the token is 32 random bytes. **Only SHA-256 hashes are stored** (migration `0003_devices.sql`) — the plaintext of either never lands in D1. `last_seen_at` is refreshed at most every 5 min, off the response path via `ctx.waitUntil`, so a polling client doesn't turn every read into a write.
+
+Unlinking from a browser (Settings › Linked devices, outside Telegram) only forgets the token locally — it does **not** revoke the row, because revoking needs `authenticateTelegramRequest`. The UI says so rather than implying the device is gone.
 
 `app/api/summary/route.ts` is the rollup a badge can render: one `usedPct` per key plus `worstPct`, authenticated with either credential. The dashboard does this fan-out client-side (`useKeysModelUsage`), which a tray icon can't — so this route repeats it server-side, calling Z.ai directly (no browser, no CORS to dodge) and mirroring `fetchUsage` in `alerts-cron/worker.js`, including its `ok`/`unsupported`/`error` split. One bad key never fails the response.
 
@@ -56,17 +60,19 @@ Codes and tokens live in `lib/device-auth.ts`. The code is 8 chars of an ambigui
 
 ### Client data flow
 - **TanStack Query** wraps the Z.ai calls (`lib/zai-monitor.ts`, `lib/zai-client.ts`), 60s refresh on the dashboard; `model-usage` goes browser-direct (see the WAF quirk above), everything else through the `/api/zai` proxy. `useKeysModelUsage(keys, days)` in `hooks/use-key-quota.ts` fans out one query per key via `useQueries` — Overview and Usage both aggregate from it. All usage/quota numbers come from Z.ai's monitor endpoints; the app does not keep a local usage log.
-- **Zustand** stores in `lib/stores/`: `ui-store` (selected key id), `auth-store`, `alerts-store` (per-threshold enable flags + per-key `lastFired` tracking for the 50/75/90/95% alerts surfaced in `components/settings/alert-thresholds.tsx`).
-- **API keys** are D1-authoritative when in Telegram, with localStorage as an offline cache. `hooks/use-api-keys.ts` reads via `useApiKeys` (queryKey carries an auth marker so it re-runs once `initDataRaw` resolves) and writes via per-key optimistic mutations that sync one row to D1 and surface a toast on failure. `lib/api-keys.ts` holds the shared storage + network helpers; `normalizeApiKey` in `lib/types.ts` is the single key-shaping function used by both client and server. Outside Telegram (no `initDataRaw`, e.g. plain `next dev`) it degrades to localStorage-only. `components/providers/key-migration.tsx` does the one-time localStorage→D1 push (snapshot-safe, not inside the query) and shows the "synced" toast.
+- **Zustand** stores in `lib/stores/`: `ui-store` (selected key id), `device-session-store` (the paired browser's device token), `alerts-store` (per-threshold enable flags + per-key `lastFired` tracking for the 50/75/90/95% alerts surfaced in `components/settings/alert-thresholds.tsx`).
+- **Auth credential.** `lib/auth-credential.ts` defines the client-side union of the two credentials `lib/api-auth.ts` accepts (`{kind:"telegram"}` / `{kind:"device"}`) plus `credentialHeaders()`; `hooks/use-auth-credential.ts` resolves which one applies — Telegram wins, then a paired browser's device token, else `null` (localStorage-only). Every D1-touching client path goes through it, which is what makes the app work outside Telegram. **Its `ready` flag is load-bearing**: both sources are empty on first paint, so treating an unresolved credential as "no account" flashes the wrong UI. It uses `useSyncExternalStore` with a distinct server snapshot rather than a mount effect — a `setState`-in-effect trips the `react-hooks/set-state-in-effect` lint rule and risks a hydration mismatch.
+- **API keys** are D1-authoritative whenever a credential resolves, with localStorage as an offline cache. `hooks/use-api-keys.ts` reads via `useApiKeys` (queryKey carries `credentialMarker` so it re-runs once the credential resolves) and writes via per-key optimistic mutations that sync one row to D1 and surface a toast on failure. `lib/api-keys.ts` holds the shared storage + network helpers; `normalizeApiKey` in `lib/types.ts` is the single key-shaping function used by both client and server. With no credential (plain `next dev`, or an unpaired browser) it degrades to localStorage-only. `components/providers/key-migration.tsx` does the one-time localStorage→D1 push (snapshot-safe, not inside the query) and shows the "synced" toast — for **either** credential, and only ever into an empty account, so a browser paired after the fact can't overwrite what Telegram stored.
 - **localStorage** is the source of truth for the rest of the user-owned state:
   - `zai-tracker-keys` — API-key cache (`{ id, name, endpoint, key, … }`, see `ApiKey` in `lib/types.ts`); canonical copy lives in D1 when authenticated
   - `zai-tracker-ui`, `zai-tracker-alerts`
+  - `zai-tracker-device` — the device token this browser redeemed a pairing code for, if any
   - A one-time `LegacyStorageCleanup` provider wipes obsolete `zai:events:*` keys (an old Playground call log that no longer exists) — don't reintroduce that log.
 - Playground shows a per-call cost estimate computed from `lib/zai-pricing.ts` (hand-maintained table — approximate). It is not persisted.
 - Per-key chart/badge colors come from `lib/key-palette.ts` — the same key index always maps to the same hue across Overview and Usage.
 
 ### Routes (`app/(app)/`)
-`/` Overview · `/usage` · `/playground` · `/settings`. Bottom-tab nav. `/models` still exists as a route but is hidden from the nav (`components/layout/bottom-nav.tsx`).
+`/` Overview · `/usage` · `/playground` · `/settings`. Bottom-tab nav. `/pair` sits outside the group (no nav, no key gate). `/models` still exists as a route but is hidden from the nav (`components/layout/bottom-nav.tsx`).
 
 Overview and Usage aggregate across **all** keys (totals, pie, daily lines). Playground stays single-key. The header key switcher only shows on pages that use `AppHeader`'s default `rightAction="switcher"`; Overview and Usage opt into `rightAction="add"` for an icon-only `+` button instead.
 
@@ -98,4 +104,4 @@ Three distinct Cloudflare Workers, all deployed separately: the Next app (via `@
 
 - **Mobile-first.** Designed for Telegram Mini App viewports.
 - **Use `Drawer` (vaul), not `Dialog`,** for all modal flows. shadcn/ui + Tailwind v4, icons from `@hugeicons/react`.
-- Keys are stored in plaintext (localStorage cache + the D1 `key` column, and `%APPDATA%\ai-quota\config.json` on a paired Windows device). D1 rows are scoped to a server-validated `tg_user_id`, but there is no at-rest encryption — fine for personal use, treat the bot token and DB as sensitive. Pairing codes and device tokens are the exception: those are hashed, so a DB leak can't be replayed as a credential.
+- Keys are stored in plaintext (localStorage cache + the D1 `key` column, `%APPDATA%\ai-quota\config.json` on a paired Windows device, and `zai-tracker-device` in a paired browser). D1 rows are scoped to a server-validated `tg_user_id`, but there is no at-rest encryption — fine for personal use, treat the bot token and DB as sensitive. Pairing codes and device tokens are the exception: those are hashed, so a DB leak can't be replayed as a credential.
