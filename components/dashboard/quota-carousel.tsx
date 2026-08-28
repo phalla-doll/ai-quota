@@ -16,6 +16,9 @@ import { keyPalette } from "@/lib/key-palette"
 import { cn } from "@/lib/utils"
 import type { ApiKey } from "@/lib/types"
 
+const roundButton =
+    "flex h-7 w-7 items-center justify-center rounded-full bg-muted text-muted-foreground transition-all hover:text-foreground active:scale-90 disabled:opacity-40 disabled:active:scale-100"
+
 export function QuotaCarousel({
     keys,
     title,
@@ -75,18 +78,9 @@ export function QuotaCarousel({
         }
     }, [emblaApi, keys, selectedId])
 
-    if (keys.length === 1) {
-        return (
-            <div className="space-y-2">
-                {title ? (
-                    <h2 className="px-1 text-base font-semibold">{title}</h2>
-                ) : null}
-                <QuotaCard apiKey={keys[0]} color={keyPalette[0]} />
-            </div>
-        )
-    }
+    const single = keys.length === 1
 
-    const toggle = (
+    const compactToggle = (
         <button
             type="button"
             aria-label={
@@ -94,7 +88,7 @@ export function QuotaCarousel({
             }
             aria-pressed={compact}
             onClick={() => setCompact(!compact)}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-muted-foreground transition-all hover:text-foreground active:scale-90"
+            className={roundButton}
         >
             <HugeiconsIcon
                 icon={compact ? LayoutGridIcon : LeftToRightListBulletIcon}
@@ -103,46 +97,44 @@ export function QuotaCarousel({
         </button>
     )
 
+    const header = title ? (
+        <div className="flex items-center justify-between px-1">
+            <h2 className="text-base font-semibold">{title}</h2>
+            <div className="flex items-center gap-1">
+                {!compact && !single && (
+                    <>
+                        <button
+                            type="button"
+                            aria-label="Previous key"
+                            onClick={() => emblaApi?.scrollPrev()}
+                            disabled={!canPrev}
+                            className={roundButton}
+                        >
+                            <HugeiconsIcon icon={ArrowLeft02Icon} size={14} />
+                        </button>
+                        <button
+                            type="button"
+                            aria-label="Next key"
+                            onClick={() => emblaApi?.scrollNext()}
+                            disabled={!canNext}
+                            className={roundButton}
+                        >
+                            <HugeiconsIcon icon={ArrowRight02Icon} size={14} />
+                        </button>
+                    </>
+                )}
+                {!single && compactToggle}
+            </div>
+        </div>
+    ) : null
+
     return (
         <div className="space-y-2">
-            {title ? (
-                <div className="flex items-center justify-between px-1">
-                    <h2 className="text-base font-semibold">{title}</h2>
-                    <div className="flex items-center gap-1">
-                        {!compact && (
-                            <>
-                                <button
-                                    type="button"
-                                    aria-label="Previous key"
-                                    onClick={() => emblaApi?.scrollPrev()}
-                                    disabled={!canPrev}
-                                    className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-muted-foreground transition-all hover:text-foreground active:scale-90 disabled:opacity-40 disabled:active:scale-100"
-                                >
-                                    <HugeiconsIcon
-                                        icon={ArrowLeft02Icon}
-                                        size={14}
-                                    />
-                                </button>
-                                <button
-                                    type="button"
-                                    aria-label="Next key"
-                                    onClick={() => emblaApi?.scrollNext()}
-                                    disabled={!canNext}
-                                    className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-muted-foreground transition-all hover:text-foreground active:scale-90 disabled:opacity-40 disabled:active:scale-100"
-                                >
-                                    <HugeiconsIcon
-                                        icon={ArrowRight02Icon}
-                                        size={14}
-                                    />
-                                </button>
-                            </>
-                        )}
-                        {toggle}
-                    </div>
-                </div>
-            ) : null}
+            {header}
             {compact ? (
                 <QuotaCompactList keys={keys} />
+            ) : single ? (
+                <QuotaCard apiKey={keys[0]} color={keyPalette[0]} />
             ) : (
                 <>
                     <div
