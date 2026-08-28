@@ -8,6 +8,8 @@ import {
     ArrowRight02Icon,
     LayoutGridIcon,
     LeftToRightListBulletIcon,
+    MaximizeScreenIcon,
+    MinimizeScreenIcon,
 } from "@hugeicons/core-free-icons"
 import { QuotaCard } from "@/components/dashboard/quota-card"
 import { QuotaCompactList } from "@/components/dashboard/quota-compact-list"
@@ -30,6 +32,8 @@ export function QuotaCarousel({
     const setSelected = useUiStore((s) => s.setSelectedApiKeyId)
     const compact = useUiStore((s) => s.quotaCompactMode)
     const setCompact = useUiStore((s) => s.setQuotaCompactMode)
+    const widget = useUiStore((s) => s.widgetMode)
+    const setWidget = useUiStore((s) => s.setWidgetMode)
 
     const startIndex = Math.max(
         0,
@@ -78,7 +82,25 @@ export function QuotaCarousel({
         }
     }, [emblaApi, keys, selectedId])
 
+    // Widget mode is the compact list and nothing else — the chrome around it
+    // (page header, nav, breakdown card) is hidden by AppShell / the page.
+    const showList = widget || compact
     const single = keys.length === 1
+
+    const widgetToggle = (
+        <button
+            type="button"
+            aria-label={widget ? "Exit widget mode" : "Enter widget mode"}
+            aria-pressed={widget}
+            onClick={() => setWidget(!widget)}
+            className={roundButton}
+        >
+            <HugeiconsIcon
+                icon={widget ? MaximizeScreenIcon : MinimizeScreenIcon}
+                size={14}
+            />
+        </button>
+    )
 
     const compactToggle = (
         <button
@@ -101,7 +123,7 @@ export function QuotaCarousel({
         <div className="flex items-center justify-between px-1">
             <h2 className="text-base font-semibold">{title}</h2>
             <div className="flex items-center gap-1">
-                {!compact && !single && (
+                {!widget && !compact && !single && (
                     <>
                         <button
                             type="button"
@@ -123,7 +145,8 @@ export function QuotaCarousel({
                         </button>
                     </>
                 )}
-                {!single && compactToggle}
+                {!widget && !single && compactToggle}
+                {widgetToggle}
             </div>
         </div>
     ) : null
@@ -131,7 +154,7 @@ export function QuotaCarousel({
     return (
         <div className="space-y-2">
             {header}
-            {compact ? (
+            {showList ? (
                 <QuotaCompactList keys={keys} />
             ) : single ? (
                 <QuotaCard apiKey={keys[0]} color={keyPalette[0]} />

@@ -6,22 +6,38 @@ import { ModelBreakdownCard } from "@/components/dashboard/model-breakdown-card"
 import { NoApiKeyState } from "@/components/dashboard/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useApiKeys, useSelectedApiKey } from "@/hooks/use-api-keys"
+import { useUiStore } from "@/lib/stores/ui-store"
+import { cn } from "@/lib/utils"
 
 export default function DashboardPage() {
     const { data: keys, isLoading: keysLoading } = useApiKeys()
     const selected = useSelectedApiKey()
+    const widget = useUiStore((s) => s.widgetMode)
 
     const hasKeys = (keys?.length ?? 0) > 0
+    // Widget mode strips the page down to the quota list: no page header, no
+    // breakdown card (and AppShell drops the bottom nav), so the card sits
+    // alone at the top of the viewport.
+    const widgetView = widget && hasKeys && !!selected && !keysLoading
 
     return (
         <>
-            <AppHeader
-                title="Overview"
-                subtitle="Across all your API keys"
-                rightAction="add"
-            />
+            {widgetView ? null : (
+                <AppHeader
+                    title="Overview"
+                    subtitle="Across all your API keys"
+                    rightAction="add"
+                />
+            )}
 
-            <div className="space-y-4 px-4 pt-3">
+            <div
+                className={cn(
+                    "space-y-4 px-4",
+                    widgetView
+                        ? "pt-[max(calc(env(safe-area-inset-top)+0.75rem),1rem)]"
+                        : "pt-3"
+                )}
+            >
                 {keysLoading ? (
                     <>
                         <Skeleton className="h-56 w-full rounded-2xl" />
@@ -32,7 +48,9 @@ export default function DashboardPage() {
                 ) : (
                     <>
                         <QuotaCarousel keys={keys!} title="Quota by key" />
-                        <ModelBreakdownCard keys={keys!} />
+                        {widgetView ? null : (
+                            <ModelBreakdownCard keys={keys!} />
+                        )}
                     </>
                 )}
             </div>

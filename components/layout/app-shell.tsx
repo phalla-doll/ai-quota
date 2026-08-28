@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/layout/bottom-nav"
 import { PageTransition } from "@/components/layout/page-transition"
 import { WelcomeScreen } from "@/components/dashboard/welcome-screen"
 import { useApiKeys } from "@/hooks/use-api-keys"
+import { useUiStore } from "@/lib/stores/ui-store"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
     const {
@@ -16,6 +17,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     } = useApiKeys()
     const router = useRouter()
     const pathname = usePathname()
+    const widgetMode = useUiStore((s) => s.widgetMode)
     const wasEmpty = React.useRef(false)
 
     const hasKeys = !!keys && keys.length > 0
@@ -40,12 +42,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         return <WelcomeScreen />
     }
 
+    // Widget mode only strips chrome on the dashboard — the toggle lives there
+    // and nowhere else, so hiding the nav on another route would strand the user.
+    const widget = widgetMode && pathname === "/"
+
     return (
         <>
-            <main className="pb-[calc(env(safe-area-inset-bottom)+5.5rem)]">
+            <main
+                className={
+                    widget
+                        ? "pb-[calc(env(safe-area-inset-bottom)+1rem)]"
+                        : "pb-[calc(env(safe-area-inset-bottom)+5.5rem)]"
+                }
+            >
                 <PageTransition>{children}</PageTransition>
             </main>
-            <BottomNav />
+            {widget ? null : <BottomNav />}
         </>
     )
 }
