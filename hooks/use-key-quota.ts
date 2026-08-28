@@ -45,6 +45,7 @@ export function useKeyModelUsage(
         queryKey: ["zai", "monitor", "model-usage", apiKey?.id, days],
         enabled: Boolean(apiKey),
         staleTime: 60_000,
+        refetchInterval: 60_000,
         queryFn: () => {
             const { start, end } = rangeDays(days)
             return fetchModelUsage(apiKey!.key, start, end)
@@ -57,6 +58,7 @@ export function useKeysModelUsage(keys: ApiKey[], days: number) {
         queries: keys.map((k) => ({
             queryKey: ["zai", "monitor", "model-usage", k.id, days],
             staleTime: 60_000,
+            refetchInterval: 60_000,
             queryFn: () => {
                 const { start, end } = rangeDays(days)
                 return fetchModelUsage(k.key, start, end)
